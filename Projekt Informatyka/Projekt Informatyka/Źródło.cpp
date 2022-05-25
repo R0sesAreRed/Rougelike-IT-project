@@ -14,19 +14,12 @@ HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
 const short int rs = 13; //room size
 
-int hhp, hdmg, harmor, hmr, mana, hspd, movesleft, lvlupexp = 300;
-int chp = 1, cmana, cexp = 0, lvl = 1, pietro = 1;
-int bhp = 20, bdmg = 5, barmor = 5, bmr = 5, bmana = 0, bspd = 2, branddmg = 0; //base stats, for balancing purposes
 
 int hcx = 123, hcy = 5, hrx = 0, hry = 10, chrx = hrx, chry = hry; //hero coordiante x, y , hero room x, y, changed hero room x, y
 
 int aiused[5] = {}, nr; //AI
 int aix = 0, aiy = 0, aic;
 int behp = 8, bedmg = 10, bespd = 2; //podstawowe statystyki przeciwników
-
-
-
-
 
 int			help = 0, hero = 4; //wybór postaci i obs³uga ekwipunku
 bool			change = 0;
@@ -97,10 +90,24 @@ void loottable(int a, int b) //tabele przedmoitów przeciwników
 	}
 }
 
+class Player
+{
+public:
+	int hp, dmg, armor, mr, mana, spd, movesleft, lvlupexp = 300;
+	int chp = 1, cmana, cexp = 0, lvl = 1, floor_no = 1; //c - current
+	const int bhp = 20, bdmg = 5, barmor = 5, bmr = 5, bmana = 0, bspd = 2, branddmg = 0; //base stats, for balancing purposes, const
+	void assign_class_stats(int a, int b, int c, int d, int e, int f)
+	{
+		hp = bhp + a, dmg = bdmg + b, armor = barmor + c, mr = bmr + d, mana = bmana + e, spd = bspd + f, chp = hp, cmana = mana;
+	}
+};
+Player p;
+
 class Walls //œciany i pod³oga
 {
 public:
 	int	board[130][130] = {};
+private:
 	int w[rs] = { 4, 4, 4, 4, 0, 0, 0, 0, 4, 4, 4, 4, 4 }; //przejœcie miêdzy pokojami
 	int p0[12][12] = { //pokój 1 (3-1 - œciana, 0 - pod³oga)
 		{4, 4, 4, 4, 0, 0, 0, 0, 4, 4, 4, 4},
@@ -197,8 +204,8 @@ public:
 		}
 
 	}
-
-	void boardgen()  //generowanie planszy
+public:
+	void gen()  //generowanie planszy
 	{
 		for (int i = 0; i < 10; i++)
 		{
@@ -237,7 +244,7 @@ class Units //przeciwnicy
 {
 public:
 	int	board[130][130] = {};
-	void enemygen() //generowanie przeciwnikow
+	void gen() //generowanie przeciwnikow
 	{
 		int a = 3, b, rx, ry, ru; //random x, random y, random unit
 		for (int i = 0; i < 10; i++)
@@ -421,14 +428,14 @@ struct tempbuff
 	int randdmg;
 	void reset()
 	{
-		hhp -= hp; hp = 0;
-		if (chp > hhp) chp = hhp;
-		harmor -= armor; armor = 0;
-		hmr -= mr; mr = 0;
-		mana -= hmana; hmana = 0;
-		if (cmana > mana) cmana = mana;
-		hspd -= spd; spd = 0;
-		hdmg -= dmg; dmg = 0;
+		p.hp -= hp; hp = 0;
+		if (p.chp > p.hp) p.chp = p.hp;
+		p.armor -= armor; armor = 0;
+		p.mr -= mr; mr = 0;
+		p.mana -= hmana; hmana = 0;
+		if (p.cmana > p.mana) p.cmana = p.mana;
+		p.spd -= spd; spd = 0;
+		p.dmg -= dmg; dmg = 0;
 	}
 };
 tempbuff nextturn = { 0, 0, 0, 0, 0, 0, 0 };
@@ -472,12 +479,12 @@ void kulaognia() { //zakelcia maga
 		{
 			if (units.board[spellx + i + hrx * rs][spelly + j + hry * rs] == 2)
 			{
-				chp -= 20;
+				p.chp -= 20;
 			}
 			else if (en[units.board[spellx + i + hrx * rs][spelly + j + hry * rs]].hp - 20 <= 0)
 			{
 				dropitem(hrx * rs + spellx + i, hry * rs + spelly + j, en[units.board[hrx * rs + spellx + i][hry * rs + spelly + j]].item);
-				cexp += en[units.board[hrx * rs + spellx + i][hry * rs + spelly + j]].exp;
+				p.cexp += en[units.board[hrx * rs + spellx + i][hry * rs + spelly + j]].exp;
 				units.board[hrx * rs + spellx + i][hry * rs + spelly + j] = 0;
 			}
 			else if (en[units.board[spellx + i + hrx * rs][spelly + j + hry * rs]].hp - 20 > 0)
@@ -490,8 +497,8 @@ void kulaognia() { //zakelcia maga
 void pancerzmaga() {
 	nextroom.armor += 5;
 	nextroom.mr += 5;
-	harmor += 5;
-	hmr += 5;
+	p.armor += 5;
+	p.mr += 5;
 }
 void wallhelp(int a, int b)
 {
@@ -534,7 +541,7 @@ void pocisklodu() {
 	if (en[units.board[hrx * rs + spellx][hry * rs + spelly]].hp - 2 <= 0)
 	{
 		dropitem(hrx * rs + spellx, hry * rs + spelly, en[units.board[hrx * rs + spellx][hry * rs + spelly]].item);
-		cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
+		p.cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
 		units.board[hrx * rs + spellx][hry * rs + spelly] = 0;
 	}
 	else
@@ -547,7 +554,7 @@ void teleportacja() {
 	if (walls.board[spellx + hrx * rs][spelly + hry * rs] == 1)
 	{
 		swap(units.board[spellx + hrx * rs][spelly + hry * rs], units.board[hcx][hcy]);
-		chp = 0;
+		p.chp = 0;
 	}
 	else
 	{
@@ -558,7 +565,7 @@ void teleportacja() {
 }
 
 void uleczrane() { //zaklecia kalpana
-	chp = chp + 20 > hhp ? hhp : chp + 20;
+	p.chp = p.chp + 20 > p.hp ? p.hp : p.chp + 20;
 }
 void rozblyskcienia() {
 
@@ -571,15 +578,15 @@ void rozblyskcienia() {
 				if (en[units.board[hcx + i][hcy + j]].hp - 5 <= 0)
 				{
 					dropitem(hcx + i, hcy + j, en[units.board[hcx + i][hcy + j]].item);
-					cexp += en[units.board[hcx + i][hcy + j]].exp;
+					p.cexp += en[units.board[hcx + i][hcy + j]].exp;
 					units.board[hcx + i][hcy + j] = 0;
-					hhp++;
+					p.hp++;
 				}
 				else
 				{
 					en[units.board[hcx + i][hcy + j]].hp -= 5;
 				}
-				chp = chp + 5 > hhp ? hhp : chp + 5;
+				p.chp = p.chp + 5 > p.hp ? p.hp : p.chp + 5;
 			}
 		}
 	}
@@ -596,7 +603,7 @@ void wybuchswiatla() {
 					if (en[units.board[hcx + i][hcy + j]].hp - 10 <= 0)
 					{
 						dropitem(hcx + i, hcy + j, en[units.board[hcx + i][hcy + j]].item);
-						cexp += en[units.board[hcx + i][hcy + j]].exp;
+						p.cexp += en[units.board[hcx + i][hcy + j]].exp;
 						units.board[hcx + i][hcy + j] = 0;
 					}
 					else
@@ -620,32 +627,32 @@ void odrodzenie() {
 }
 void boskiwyrok() {
 	dropitem(hrx * rs + spellx, hry * rs + spelly, en[units.board[hrx * rs + spellx][hry * rs + spelly]].item);
-	cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
+	p.cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
 	units.board[hrx * rs + spellx][hry * rs + spelly] = 0;
 }
 
 void cioswplecy() { //zaklecia ³otra
 	nextattack.dmg += 10;
-	hdmg += 10;
+	p.dmg += 10;
 }
 void sprint() {
 	nextturn.spd += 2;
-	movesleft += 2;
-	hspd += 2;
+	p.movesleft += 2;
+	p.spd += 2;
 }
 void ukrycie() {
 	stealth = 1;
 }
 void rzutnozem() {
-	if (en[units.board[hrx * rs + spellx][hry * rs + spelly]].hp - hdmg <= 0)
+	if (en[units.board[hrx * rs + spellx][hry * rs + spelly]].hp - p.dmg <= 0)
 	{
 		dropitem(hrx * rs + spellx, hry * rs + spelly, en[units.board[hrx * rs + spellx][hry * rs + spelly]].item);
-		cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
+		p.cexp += en[units.board[hrx * rs + spellx][hry * rs + spelly]].exp;
 		units.board[hrx * rs + spellx][hry * rs + spelly] = 0;
 	}
 	else
 	{
-		en[units.board[hrx * rs + spellx][hry * rs + spelly]].hp -= hdmg;
+		en[units.board[hrx * rs + spellx][hry * rs + spelly]].hp -= p.dmg;
 	}
 	nextattack.reset();
 }
@@ -813,26 +820,23 @@ Zaklecie("Boski Wyrok         ", 2, 20, "Zabija wybranego wroga", &boskiwyrok),
 
 
 
-
-
-
-
-void wyborpostaci() //wybór klasy postaci na pocz¹tku gry
+//do zastapienia
+void deathanim(short a, short b) // animacja przy œmierci lub escape DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
-	if (help == 0) std::cout << ">";
-	else std::cout << " ";
-	std::cout << "Fighter  ";
-	if (help == 1) std::cout << ">";
-	else std::cout << " ";
-	std::cout << "Rogue  ";
-	if (help == 2) std::cout << ">";
-	else std::cout << " ";
-	std::cout << "Mage  ";
-	if (help == 3) std::cout << ">";
-	else std::cout << " ";
-	std::cout << "Cleric  ";
-}
+	for (short i = 26; i >= 0; i -= 2)
+	{
+		SetConsoleCursorPosition(handle, { i, a });
+		Sleep(40 - b);
+		cout << setw(2) << "  ";
+	}
+	for (short i = 0; i <= 26; i += 2)
+	{
+		SetConsoleCursorPosition(handle, { i, (short)(a + 1) });
+		Sleep(37 - b);
+		cout << setw(2) << "  ";
+	}
 
+}
 void wallprint() //wypisywanie œcian DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
 	SetConsoleTextAttribute(handle, 112);
@@ -925,104 +929,6 @@ void floorprint() //wypisywanie pod³ogi i przeciwników DO USUNIECIA DO USUNIECIA
 		std::cout << "  ";
 	}
 }
-
-void secretrooms()
-{
-	for (int i = 0; i < 10; i++)
-	{
-		for (int j = 0; j < 10; j++)
-		{
-			if (map.map[i][j] == ' ') //pokój bez wejœæ
-			{
-				for (int k = i * rs; k < i * rs + rs; k++)
-				{
-					for (int l = j * rs; l < j * rs + rs; l++)
-					{
-						units.board[k][l] = 0;
-					}
-				}
-				loottable(1, 0);
-				items.board[i * rs + 5][j * rs + 5] = en[0].item;
-				loottable(1, 0);
-				items.board[i * rs + 4][j * rs + 6] = en[0].item;
-				loottable(1, 0);
-				items.board[i * rs + 5][j * rs + 4] = en[0].item;
-			}
-		}
-	}
-}
-
-void mapcontrol(int a, int b) //poruszanie sie postaci, zadawanie obra¿eñ, przedmioty, zmiana piêtra
-{
-	if (walls.board[hcx + a][hcy + b] == 0 && units.board[hcx + a][hcy + b] == 0) { units.board[hcx][hcy] = 0; hcy += b; hcx += a; movesleft--; }
-	else if (units.board[hcx + a][hcy + b] != 0)
-	{
-		en[units.board[hcx + a][hcy + b]].hp -= hdmg;
-		nextattack.reset();
-		if (stealth == 1) stealth = 0;
-		if (en[units.board[hcx + a][hcy + b]].hp <= 0)  //przeciwnik ginie
-		{
-			dropitem(hcx + a, hcy + b, en[units.board[hcx + a][hcy + b]].item);
-			cexp += en[units.board[hcx + a][hcy + b]].exp; //zdobywanie doswiadczenia za zabijanie przeciwnikow
-			units.board[hcx + a][hcy + b] = 0;
-		}
-		movesleft--;
-	}
-	else if (walls.board[hcx + a][hcy + b] > 0 && walls.board[hcx + a][hcy + b] < 5)
-	{
-		walls.board[hcx + a][hcy + b]--; movesleft--;
-		wallprint();
-	}
-	else if (walls.board[hcx + a][hcy + b] == 10) //zmiana piêtra
-	{
-		behp = behp * 2;
-		bedmg = bedmg * 2;
-		bespd++; //zwiêkszenie statystyk przeciwników, poziomu trudnoœci
-		swap(units.board[hcx][hcy], units.board[123][5]); //reset coordów postaci
-		hcx = 123;
-		hcy = 5;
-		for (int i = 0; i < 130; i++) //czyszczenie tabel
-		{
-			for (int j = 0; j < 130; j++)
-			{
-				if (units.board[i][j] > 2)
-					units.board[i][j] = 0;
-				walls.board[i][j] = 0;
-				items.board[i][j] = 0;
-			}
-		}
-		walls.boardgen();
-		map.mmap();
-		units.enemygen();
-		secretrooms();
-		wallprint();
-		floorprint();
-		pietro++;
-	}
-	if (items.board[hcx][hcy] > 0) //podnoszenie przedmiotów
-	{
-		if (items.board[hcx][hcy] == 1) //consumable ZMIENIÆ NA UNIWESALNE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 
-		{
-			chp = chp + item[items.board[hcx][hcy]].hp > hhp ? hhp : chp + item[items.board[hcx][hcy]].hp;
-			items.board[hcx][hcy] = 0;
-		}
-		else
-		{
-			for (int i = 0; i < 4; i++) //umieszczanie przedmiotów w ekwipunku
-			{
-				for (int j = 1; j < 5; j++)
-				{
-					if (eq.content[j][i] == 0)
-					{
-						eq.content[j][i] = items.board[hcx][hcy];
-						items.board[hcx][hcy] = 0;
-					}
-				}
-			}
-		}
-	}
-}
-
 void ramkaeq() //funkcja wypisuj¹ca ramkê DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
 	SetConsoleTextAttribute(handle, 12);
@@ -1058,7 +964,6 @@ void ramkaeq() //funkcja wypisuj¹ca ramkê DO USUNIECIA DO USUNIECIA DO USUNIECIA
 	}
 	cout << setfill(' ');
 }
-
 void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
 	for (short i = 0; i < 7; i++)
@@ -1068,9 +973,9 @@ void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNI
 	}
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 0 });
 	SetConsoleTextAttribute(handle, 15);
-	std::cout << "exp: " << cexp << " / " << lvlupexp << "  LVL: " << lvl;
+	std::cout << "exp: " << p.cexp << " / " << p.lvlupexp << "  LVL: " << p.lvl;
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 1 });
-	double ratio = (chp * 1.0) / (hhp * 1.0);
+	double ratio = (p.chp * 1.0) / (p.hp * 1.0);
 	for (double i = 0.0; i < 10.0; i++)
 	{
 		if ((i / 10) < ratio)
@@ -1086,37 +991,166 @@ void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNI
 	}
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 2 });
 	SetConsoleTextAttribute(handle, 15);
-	std::cout << chp << " / " << hhp;
+	std::cout << p.chp << " / " << p.hp;
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 3 });
 	SetConsoleTextAttribute(handle, 14);
-	std::cout << "Armor: " << harmor;
+	std::cout << "Armor: " << p.armor;
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 4 });
 	SetConsoleTextAttribute(handle, 11);
-	std::cout << "Magic Res.: " << hmr;
+	std::cout << "Magic Res.: " << p.mr;
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 5 });
 	SetConsoleTextAttribute(handle, 4);
-	std::cout << "Damage: " << hdmg;
+	std::cout << "Damage: " << p.dmg;
 	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 6 });
 	SetConsoleTextAttribute(handle, 8);
-	std::cout << "Speed: " << movesleft << " / " << hspd << "   ";
+	std::cout << "Speed: " << p.movesleft << " / " << p.spd << "   ";
 	if (hero != 0)
 	{
 		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 7 });
 		SetConsoleTextAttribute(handle, 9);
-		std::cout << "Mana: " << cmana << " / " << mana << "   ";
+		std::cout << "Mana: " << p.cmana << " / " << p.mana << "   ";
 	}
 
+}
+void spellborderprint() //wypisywanie ramki menu zaklêæ DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
+{
+	SetConsoleCursorPosition(handle, { 0, 8 });
+	SetConsoleTextAttribute(handle, 11);
+	std::cout << (char)0xC9 << setw(27) << setfill((char)0xCD) << (char)0xBB;
+	for (short i = 9; i < 14; i++)
+	{
+		SetConsoleCursorPosition(handle, { 0, i });
+		std::cout << (char)0xBA << setw(27) << setfill(' ') << (char)0xBA;
+	}
+	SetConsoleCursorPosition(handle, { 0, 14 });
+	std::cout << (char)0xC8 << setw(27) << setfill((char)0xCD) << (char)0xBC;
+	cout << setfill(' ');
+}
+void cleanup() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
+{
+	SetConsoleCursorPosition(handle, { 0, 14 });
+	std::cout << "                                                                  ";
+	SetConsoleCursorPosition(handle, { 0, 15 });
+	std::cout << "                                                                  ";
+	SetConsoleCursorPosition(handle, { 0, 16 });
+	std::cout << "                                                                  " << setfill(' ');
+	for (short i = 0; i < 5; i++)
+	{
+		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 2), (short)(11 + i) });
+		std::cout << setw(35) << " " << endl;
+	}
+
+}
+//do zastapienia
+
+
+
+void secretrooms()
+{
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (map.map[i][j] == ' ') //pokój bez wejœæ
+			{
+				for (int k = i * rs; k < i * rs + rs; k++)
+				{
+					for (int l = j * rs; l < j * rs + rs; l++)
+					{
+						units.board[k][l] = 0;
+					}
+				}
+				loottable(1, 0);
+				items.board[i * rs + 5][j * rs + 5] = en[0].item;
+				loottable(1, 0);
+				items.board[i * rs + 4][j * rs + 6] = en[0].item;
+				loottable(1, 0);
+				items.board[i * rs + 5][j * rs + 4] = en[0].item;
+			}
+		}
+	}
+}
+
+void mapcontrol(int a, int b) //poruszanie sie postaci, zadawanie obra¿eñ, przedmioty, zmiana piêtra
+{
+	if (walls.board[hcx + a][hcy + b] == 0 && units.board[hcx + a][hcy + b] == 0) { units.board[hcx][hcy] = 0; hcy += b; hcx += a; p.movesleft--; }
+	else if (units.board[hcx + a][hcy + b] != 0)
+	{
+		en[units.board[hcx + a][hcy + b]].hp -= p.dmg;
+		nextattack.reset();
+		if (stealth == 1) stealth = 0;
+		if (en[units.board[hcx + a][hcy + b]].hp <= 0)  //przeciwnik ginie
+		{
+			dropitem(hcx + a, hcy + b, en[units.board[hcx + a][hcy + b]].item);
+			p.cexp += en[units.board[hcx + a][hcy + b]].exp; //zdobywanie doswiadczenia za zabijanie przeciwnikow
+			units.board[hcx + a][hcy + b] = 0;
+		}
+		p.movesleft--;
+	}
+	else if (walls.board[hcx + a][hcy + b] > 0 && walls.board[hcx + a][hcy + b] < 5)
+	{
+		walls.board[hcx + a][hcy + b]--; p.movesleft--;
+		wallprint();
+	}
+	else if (walls.board[hcx + a][hcy + b] == 10) //zmiana piêtra
+	{
+		behp = behp * 2;
+		bedmg = bedmg * 2;
+		bespd++; //zwiêkszenie statystyk przeciwników, poziomu trudnoœci
+		swap(units.board[hcx][hcy], units.board[123][5]); //reset coordów postaci
+		hcx = 123;
+		hcy = 5;
+		for (int i = 0; i < 130; i++) //czyszczenie tabel
+		{
+			for (int j = 0; j < 130; j++)
+			{
+				if (units.board[i][j] > 2)
+					units.board[i][j] = 0;
+				walls.board[i][j] = 0;
+				items.board[i][j] = 0;
+			}
+		}
+		walls.gen();
+		map.mmap();
+		units.gen();
+		secretrooms();
+		wallprint();
+		floorprint();
+		p.floor_no++;
+	}
+	if (items.board[hcx][hcy] > 0) //podnoszenie przedmiotów
+	{
+		if (item[items.board[hcx][hcy]].consumable == 1) //consumable
+		{
+			p.chp = p.chp + item[items.board[hcx][hcy]].hp > p.hp ? p.hp : p.chp + item[items.board[hcx][hcy]].hp;
+			items.board[hcx][hcy] = 0;
+		}
+		else
+		{
+			for (int i = 0; i < 4; i++) //umieszczanie przedmiotów w ekwipunku
+			{
+				for (int j = 1; j < 5; j++)
+				{
+					if (eq.content[j][i] == 0)
+					{
+						eq.content[j][i] = items.board[hcx][hcy];
+						items.board[hcx][hcy] = 0;
+					}
+				}
+			}
+		}
+	}
 }
 
 void enemyattack(int i, int j, int k, int c) //funkcja ataku przeciwnika
 {
 	if (en[units.board[i][j]].type == 0)
 	{
-		chp -= ((en[c].dmg - harmor) > 0 ? (en[c].dmg - harmor) : 0);
+		p.chp -= ((en[c].dmg - p.armor) > 0 ? (en[c].dmg - p.armor) : 0);
 	}
 	else
 	{
-		chp -= ((en[c].dmg - hmr) > 0 ? (en[c].dmg - hmr) : 0);
+		p.chp -= ((en[c].dmg - p.mr) > 0 ? (en[c].dmg - p.mr) : 0);
 	}
 	k = en[c].spd + 1;
 }
@@ -1446,60 +1480,14 @@ void AII() //AI przeciwników
 	}
 }
 
-void deathanim(short a, short b) // animacja przy œmierci lub escape DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	for (short i = 26; i >= 0; i -= 2)
-	{
-		SetConsoleCursorPosition(handle, { i, a });
-		Sleep(40 - b);
-		cout << setw(2) << "  ";
-	}
-	for (short i = 0; i <= 26; i += 2)
-	{
-		SetConsoleCursorPosition(handle, { i, (short)(a + 1) });
-		Sleep(37 - b);
-		cout << setw(2) << "  ";
-	}
-
-}
-
-void spellborderprint() //wypisywanie ramki menu zaklêæ DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	SetConsoleCursorPosition(handle, { 0, 8 });
-	SetConsoleTextAttribute(handle, 11);
-	std::cout << (char)0xC9 << setw(27) << setfill((char)0xCD) << (char)0xBB;
-	for (short i = 9; i < 14; i++)
-	{
-		SetConsoleCursorPosition(handle, { 0, i });
-		std::cout << (char)0xBA << setw(27) << setfill(' ') << (char)0xBA;
-	}
-	SetConsoleCursorPosition(handle, { 0, 14 });
-	std::cout << (char)0xC8 << setw(27) << setfill((char)0xCD) << (char)0xBC;
-	cout << setfill(' ');
-}
-void cleanup() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	SetConsoleCursorPosition(handle, { 0, 14 });
-	std::cout << "                                                                  ";
-	SetConsoleCursorPosition(handle, { 0, 15 });
-	std::cout << "                                                                  ";
-	SetConsoleCursorPosition(handle, { 0, 16 });
-	std::cout << "                                                                  " << setfill(' ');
-	for (short i = 0; i < 5; i++)
-	{
-		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 2), (short)(11 + i) });
-		std::cout << setw(35) << " " << endl;
-	}
-
-}
 
 int main()
 {
 	char inp = ':)';
 	char eqinp = ':)';
-	walls.boardgen();
+	walls.gen();
 	map.mmap();
-	units.enemygen();
+	units.gen();
 	secretrooms();
 	help = 0;
 	do
@@ -1534,7 +1522,18 @@ int main()
 			}
 			if (inp != 13)
 			{
-				wyborpostaci();
+				if (help == 0) std::cout << ">";
+				else std::cout << " ";
+				std::cout << "Fighter  ";
+				if (help == 1) std::cout << ">";
+				else std::cout << " ";
+				std::cout << "Rogue  ";
+				if (help == 2) std::cout << ">";
+				else std::cout << " ";
+				std::cout << "Mage  ";
+				if (help == 3) std::cout << ">";
+				else std::cout << " ";
+				std::cout << "Cleric  ";
 			}
 			else //przypisanie statystyk postaci
 			{
@@ -1542,19 +1541,19 @@ int main()
 				{
 				case 0:
 				{
-					hhp = bhp + 20; hdmg = bdmg; harmor = barmor + 3; hmr = bmr + 3; mana = bmana; hspd = bspd, chp = hhp, cmana = mana;
+					p.assign_class_stats(20, 0, 3, 3, 0, 0);
 				}break;
 				case 1:
 				{
-					hhp = bhp + 5; hdmg = bdmg + 10; harmor = barmor + 1; hmr = bmr + 1; mana = bmana + 10; hspd = bspd + 3, chp = hhp, cmana = mana;
+					p.assign_class_stats(5, 10, 1, 1, 10, 3);
 				}break;
 				case 2:
 				{
-					hhp = bhp; hdmg = bdmg + 10; harmor = barmor; hmr = bmr; mana = bmana + 30; hspd = bspd + 1, chp = hhp, cmana = mana;
+					p.assign_class_stats(0, 10, 0, 0, 30, 1);
 				}break;
 				case 3:
 				{
-					hhp = bhp + 10; hdmg = bdmg + 5; harmor = barmor + 2; hmr = bmr = 2; mana = bmana + 20; hspd = bspd + 1, chp = hhp, cmana = mana;
+					p.assign_class_stats(10, 5, 2, 2, 20, 1);
 				}break;
 				default: {}
 				}
@@ -1572,7 +1571,7 @@ int main()
 				wallprint();
 			}
 			change = 0;
-			if (movesleft > 0)
+			if (p.movesleft > 0)
 			{
 				switch (inp)
 				{
@@ -1616,9 +1615,9 @@ int main()
 							case 13:
 							{
 								inp = ' ';
-								if (cmana >= z[hero-1][magicmenu].manacost)
+								if (p.cmana >= z[hero-1][magicmenu].manacost)
 								{
-									cmana -= z[hero-1][magicmenu].manacost;
+									p.cmana -= z[hero-1][magicmenu].manacost;
 									if (z[hero-1][magicmenu].whencast == 3) //instant cast
 									{
 										z[hero-1][magicmenu].cast();
@@ -1674,7 +1673,7 @@ int main()
 											}break;
 											case 'm': //anulowanie
 											{
-												cmana += z[hero-1][magicmenu].manacost;
+												p.cmana += z[hero-1][magicmenu].manacost;
 												magic = 0;
 												floorprint();
 												wallprint();
@@ -1738,7 +1737,7 @@ int main()
 											}break;
 											case 'm':
 											{
-												cmana += z[hero-1][magicmenu].manacost;
+												p.cmana += z[hero-1][magicmenu].manacost;
 												magic = 0;
 												floorprint();
 												wallprint();
@@ -1858,20 +1857,20 @@ int main()
 					AII();
 				}
 				floorprint();
-				movesleft = hspd;
+				p.movesleft = p.spd;
 				inp = ':)';
 				nextturn.reset(); //reset statystyk
 			}
-			if (cexp >= lvlupexp) //zdobywanie poziomow
+			if (p.cexp >= p.lvlupexp) //zdobywanie poziomow
 			{
-				lvl++;
-				cexp -= lvlupexp;
-				lvlupexp *= 2;
-				hhp += 5;
-				harmor += 1;
-				hmr += 1;
-				hdmg += 2;
-				mana += (mana > 0 ? 5 : 0);
+				p.lvl++;
+				p.cexp -= p.lvlupexp;
+				p.lvlupexp *= 2;
+				p.hp += 5;
+				p.armor += 1;
+				p.mr += 1;
+				p.dmg += 2;
+				p.mana += (p.mana > 0 ? 5 : 0);
 			}
 
 			if (change == 0)
@@ -1884,14 +1883,14 @@ int main()
 				SetConsoleCursorPosition(handle, { 0, 16 });
 				SetConsoleTextAttribute(handle, 7);
 				SetConsoleCursorPosition(handle, { 0, 0 });
-				if (movesleft > 0)
+				if (p.movesleft > 0)
 				{
 					inp = _getch();
 				}
 			}
-			if (respawn == 1 && chp <= 0) //zaklecie kapalana (ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA )
+			if (respawn == 1 && p.chp <= 0) //zaklecie kapalana (ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA ZAKLÊCIA )
 			{
-				respawn = 0; chp = 10;
+				respawn = 0; p.chp = 10;
 			}
 		}break;
 		case 2: //ekwipunek
@@ -1900,7 +1899,7 @@ int main()
 			SetConsoleTextAttribute(handle, 7);
 			if (change == 1) //ramka do ekwipunku
 			{
-				ramkaeq();
+				ramkaeq(); //moze do zmiany ????
 			}
 			change = 0;
 			switch (inp)
@@ -1927,7 +1926,7 @@ int main()
 				menuhandler = 1;
 				change = 1;
 				cout << setfill(' ');
-				floorprint();
+				floorprint(); //USUNAC
 				wallprint();
 				cleanup();
 			}break;
@@ -1947,14 +1946,14 @@ int main()
 							{
 								switch (help)
 								{
-								case 0: //uzycie przedmiotu DODAÆ RESET STATYSTYK!!!!!!!
+								case 0: //uzycie przedmiotu (DODAÆ RESET STATYSTYK, NIEKTÓRE ITEMY MOG¥ MIEC DZIA£ANIE TYMCZASOWE)
 								{
-									chp = chp + item[eq.content[eq.x][eq.y]].hp > hhp ? hhp : chp + item[eq.content[eq.x][eq.y]].hp;
-									harmor += item[eq.content[eq.x][eq.y]].armor;
-									hmr += item[eq.content[eq.x][eq.y]].mr;
-									cmana = cmana + item[eq.content[eq.x][eq.y]].mana > mana ? mana : cmana + item[eq.content[eq.x][eq.y]].mana;
-									hspd += item[eq.content[eq.x][eq.y]].spd;
-									hdmg += item[eq.content[eq.x][eq.y]].dmg;
+									p.chp = p.chp + item[eq.content[eq.x][eq.y]].hp > p.hp ? p.hp : p.chp + item[eq.content[eq.x][eq.y]].hp;
+									p.armor += item[eq.content[eq.x][eq.y]].armor;
+									p.mr += item[eq.content[eq.x][eq.y]].mr;
+									p.cmana = p.cmana + item[eq.content[eq.x][eq.y]].mana > p.mana ? p.mana : p.cmana + item[eq.content[eq.x][eq.y]].mana;
+									p.spd += item[eq.content[eq.x][eq.y]].spd;
+									p.dmg += item[eq.content[eq.x][eq.y]].dmg;
 									eq.content[eq.x][eq.y] = 0;
 									inp = '0';
 								}break;
@@ -2062,12 +2061,12 @@ int main()
 					{
 						if (item[eq.content[eq.choicex][eq.choicey]].eqslot == eq.y + 1) //zak³adanie przedmiotów
 						{
-							hhp = hhp - item[eq.content[eq.x][eq.y]].hp + item[eq.content[eq.choicex][eq.choicey]].hp;
-							harmor = harmor - item[eq.content[eq.x][eq.y]].armor + item[eq.content[eq.choicex][eq.choicey]].armor;
-							hmr = hmr - item[eq.content[eq.x][eq.y]].mr + item[eq.content[eq.choicex][eq.choicey]].mr;
-							mana = mana - item[eq.content[eq.x][eq.y]].mana + item[eq.content[eq.choicex][eq.choicey]].mana;
-							hspd = hspd - item[eq.content[eq.x][eq.y]].spd + item[eq.content[eq.choicex][eq.choicey]].spd;
-							hdmg = hdmg - item[eq.content[eq.x][eq.y]].dmg + item[eq.content[eq.choicex][eq.choicey]].dmg;
+							p.hp = p.hp - item[eq.content[eq.x][eq.y]].hp + item[eq.content[eq.choicex][eq.choicey]].hp;
+							p.armor = p.armor - item[eq.content[eq.x][eq.y]].armor + item[eq.content[eq.choicex][eq.choicey]].armor;
+							p.mr = p.mr - item[eq.content[eq.x][eq.y]].mr + item[eq.content[eq.choicex][eq.choicey]].mr;
+							p.mana = p.mana - item[eq.content[eq.x][eq.y]].mana + item[eq.content[eq.choicex][eq.choicey]].mana;
+							p.spd = p.spd - item[eq.content[eq.x][eq.y]].spd + item[eq.content[eq.choicex][eq.choicey]].spd;
+							p.dmg = p.dmg - item[eq.content[eq.x][eq.y]].dmg + item[eq.content[eq.choicex][eq.choicey]].dmg;
 							swap(eq.content[eq.x][eq.y], eq.content[eq.choicex][eq.choicey]);
 						}
 						else //próba za³o¿enie przedmiotu na z³e miejsce
@@ -2098,10 +2097,11 @@ int main()
 				{
 					for (int j = 0; j < 4; j++)
 					{
-						if (i == eq.x && j == eq.y) SetConsoleTextAttribute(handle, 12);
-						else if (i == 0 && j == item[eq.content[eq.x][eq.y]].eqslot - 1)  SetConsoleTextAttribute(handle, 9);
-						else if (i == eq.choicex && j == eq.choicey) SetConsoleTextAttribute(handle, 13);
-						else SetConsoleTextAttribute(handle, 7);
+						if (i == eq.x && j == eq.y) SetConsoleTextAttribute(handle, 12); //kursor ekwipunku
+						else if (i == 0 && j == item[eq.content[eq.x][eq.y]].eqslot - 1 && help != 3)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w którym mo¿na za³ozyc przedmiot
+						else if (i == 0 && j == item[eq.content[eq.choicex][eq.choicey]].eqslot - 1)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w ktorym mozna zalozyc przenoszony przedmiot 
+						else if (i == eq.choicex && j == eq.choicey) SetConsoleTextAttribute(handle, 13); //podswietlanie wybranego przedmiotu
+						else SetConsoleTextAttribute(handle, 7); //normalny kolor
 						SetConsoleCursorPosition(handle, { (short)(i * 6 + 1), (short)(j * 4 + 2) });
 						std::cout << item[eq.content[i][j]].disp;
 						if ((i == eq.x && j == eq.y) || (i == eq.choicex && j == eq.choicey)) SetConsoleTextAttribute(handle, 7);
@@ -2116,7 +2116,7 @@ int main()
 
 		}break;
 		}
-	} while (inp != 27 && chp > 0);
+	} while (inp != 27 && p.chp > 0);
 	SetConsoleCursorPosition(handle, { 14, 28 }); //animacja œmierci i zakoñczenie gry
 	SetConsoleTextAttribute(handle, 240);
 	deathanim(0, 0);
