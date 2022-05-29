@@ -267,13 +267,13 @@ public:
 					{
 						rx = r(1, 10);
 						ry = r(1, 10);
-						while (board.walls[i * rs + rx][j * rs + ry] != 0 || board.walls[i * rs + rx][j * rs + ry] != 0)
+						while (board.units[i * rs + rx][j * rs + ry] != 0 || board.walls[i * rs + rx][j * rs + ry] != 0)
 						{
 							rx = r(1, 10);
 							ry = r(1, 10);
 						}
 						ru = r(3, 6);
-						board.walls[i * rs + rx][j * rs + ry] = a;
+						board.units[i * rs + rx][j * rs + ry] = a;
 
 						switch (ru)
 						{
