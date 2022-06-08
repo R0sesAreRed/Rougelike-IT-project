@@ -544,6 +544,57 @@ public:
 
 Text health(450, 330);
 
+class Event_manager {
+public:
+	sf::Event event;
+	char get_input() {
+		cout << "ok" << endl;
+		while (window.pollEvent(event))
+		{
+				if (event.type == sf::Event::Closed)
+					window.close();
+				if (event.type == sf::Event::TextEntered) {
+					
+					switch (event.text.unicode) {
+					case 87: case 119:{//up
+						return 'u'; break;
+					}
+					case 65: case 97:{//left
+						return 'l';break;
+					}
+					case 83: case 115: {//down
+						return 'd';break;
+					}
+					case 68: case 100:{//right
+						return 'r';break;
+					}
+					case 69: case 101: {//equipment
+						return 'e';break;
+					}
+					case 77: case 109: {//magic
+						return 'm';break;
+					}
+					case 13: {//confirm
+						cout << event.text.unicode;
+						return 'c';break;
+					}
+					case 82: case 114: {//turn
+						return 't';break;
+					}
+
+					}
+
+				}
+				else {
+					return 'X';
+				}
+
+		}
+	}
+};
+
+Event_manager event_manager;
+
 class Engine
 {
 public:
@@ -1600,6 +1651,7 @@ int main()
 	// Start the game loop
 	do
 	{
+		cout << inp;
 		roomx = hrx * rs;
 		roomy = hry * rs; //
 		switch (menuhandler)
@@ -1609,22 +1661,22 @@ int main()
 			SetConsoleCursorPosition(handle, { 1, 7 });
 			switch (inp)
 			{
-			case 75: case 'a': case 'A': //left
+			case 'l': //left
 			{
 				if (help > 0) help--;
 			}break;
-			case 77: case 'd': case 'D': //right
+			case 'r': //right
 			{
 				if (help < 3) help++;
 			}break;
-			case 13:
+			case 'c':
 			{
 				hero = help;
 				change = 1;
 				menuhandler = 1;
 			}break;
 			}
-			if (inp != 13)
+			if (inp != 'c')
 			{
 				if (help == 0) std::cout << ">";
 				else std::cout << " ";
@@ -1664,7 +1716,7 @@ int main()
 			}
 			if (change == 0)
 			{
-				inp = _getch();
+				inp = event_manager.get_input();
 			}
 
 		}break;
@@ -1675,23 +1727,23 @@ int main()
 			{
 				switch (inp)
 				{
-				case 75: case 'a': case 'A': //left
+				case 'l': //left
 				{
 					mapcontrol(0, -1);
 				}break;
-				case 77: case 'd': case 'D': //right
+				case 'r': //right
 				{
 					mapcontrol(0, 1);
 				}break;
-				case 72: case 'w': case 'W': //up
+				case 'u': //up
 				{
 					mapcontrol(-1, 0);
 				}break;
-				case 80: case 's': case 'S': //down
+				case 'd': //down
 				{
 					mapcontrol(1, 0);
 				}break;
-				case 'e': case 'E': //ekwipunek;
+				case 'e': //ekwipunek;
 				{
 					menuhandler = 2;
 					inp = 'X';
@@ -1710,9 +1762,9 @@ int main()
 						{
 							switch (inp)
 							{
-							case 72: case 'w': case 'W': {if (magicmenu > 0) magicmenu--; }break;
-							case 80: case 's': case 'S': {if (magicmenu < known_spells) magicmenu++; }break;
-							case 13:
+							case 'u': {if (magicmenu > 0) magicmenu--; }break;
+							case 'd': {if (magicmenu < known_spells) magicmenu++; }break;
+							case 'c':
 							{
 								inp = ' ';
 								if (p.cmana >= z[hero - 1][magicmenu].manacost)
@@ -1733,20 +1785,20 @@ int main()
 											engine.reset_overlayboard();
 											switch (inp)
 											{
-											case 75: case 'a': case 'A': //left
+											case 'l': //left
 											{
 												if (spelly >= 0) spelly--;
 
 											}break;
-											case 77: case 'd': case 'D': //right
+											case 'r': //right
 											{
 												if (spelly < 12) spelly++;
 											}break;
-											case 72: case 'w': case 'W': //up
+											case 'u': //up
 											{
 												if (spellx >= 0) spellx--;
 											}break;
-											case 80: case 's': case 'S': //down
+											case 'd': //down
 											{
 												if (spellx < 12) spellx++;
 											}break;
@@ -1755,7 +1807,7 @@ int main()
 												z[hero - 1][magicmenu].cast();
 												magic = 0;
 											}break;
-											case 'R': case 'r': //obracanie (wyko�ystywanie w jedym zakl�ciu)
+											case 't': //obracanie (wyko�ystywanie w jedym zakl�ciu)
 											{
 												if (rotation < 8)rotation++;
 												else rotation = 0;
@@ -1770,7 +1822,7 @@ int main()
 											
 											if (magic != 0)
 											{
-												inp = _getch();
+												inp = event_manager.get_input();
 											}
 											else
 											{
@@ -1806,13 +1858,13 @@ int main()
 											engine.reset_overlayboard();
 											switch (inp)
 											{
-											case 75: case 'a': case 'A': {if (magicchoice == 0) { magicchoice = how_many_enemies - 1; }
+											case 'l': {if (magicchoice == 0) { magicchoice = how_many_enemies - 1; }
 												   else { magicchoice--; }
 											}break;
-											case 77: case 'd': case 'D': {if (magicchoice >= how_many_enemies - 1) { magicchoice = 0; }
+											case 'r': {if (magicchoice >= how_many_enemies - 1) { magicchoice = 0; }
 												   else { magicchoice++; }
 											}break;
-											case 13:
+											case 'c':
 											{
 												z[hero - 1][magicmenu].cast();
 												magic = 0;
@@ -1843,7 +1895,7 @@ int main()
 												}
 												engine.overlayboard[spellx + 1][spelly + 1].set_sprite(17);
 												engine.overlayprint();
-												inp = _getch();
+												inp = event_manager.get_input();
 											}
 											else
 											{
@@ -1859,7 +1911,7 @@ int main()
 									std::cout << "Brak many                         ";
 								}
 							}break;
-							case 'M': case 'm':
+							case 'm':
 							{
 								magic = 0;
 								inp = ' ';
@@ -1885,7 +1937,7 @@ int main()
 							}
 							if (change == 0)
 							{
-								inp = _getch();
+								inp = event_manager.get_input();
 							}
 						}
 					}
@@ -1958,7 +2010,7 @@ int main()
 				SetConsoleCursorPosition(handle, { 0, 0 });
 				if (p.movesleft > 0)
 				{
-					inp = _getch();
+					inp = event_manager.get_input();
 				}
 			}
 			if (respawn == 1 && p.chp <= 0) //zaklecie kapalana (ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA )
@@ -1966,7 +2018,7 @@ int main()
 				respawn = 0; p.chp = 10;
 			}
 		}break;
-		case 2: //ekwipunek
+		case 'e': //ekwipunek
 		{
 			SetConsoleCursorPosition(handle, { 0, 0 });
 			SetConsoleTextAttribute(handle, 7);
@@ -1977,23 +2029,23 @@ int main()
 			change = 0;
 			switch (inp)
 			{
-			case 75: case 'a': case 'A': //left
+			case 'l': //left
 			{
 				if (eq.x > 0) eq.x--;
 			}break;
-			case 77: case 'd': case 'D': //right
+			case 'r': //right
 			{
 				if (eq.x < 4) eq.x++;
 			}break;
-			case 72: case 'w': case 'W': //up
+			case 'u': //up
 			{
 				if (eq.y > 0) eq.y--;
 			}break;
-			case 80: case 's': case 'S': //down
+			case 'd': //down
 			{
 				if (eq.y < 3) eq.y++;
 			}break;
-			case 'e': case 'E': //mapa
+			case 'e': //powrot 
 			{
 				inp = 'X';
 				menuhandler = 1;
@@ -2001,7 +2053,7 @@ int main()
 				cout << setfill(' ');
 				engine.floorprint();
 			}break;
-			case 13: //akcje zwiazane z przedmiotami
+			case 'c': //akcje zwiazane z przedmiotami
 			{
 				if (help < 3 && eq.content[eq.x][eq.y] != 0)
 				{
@@ -2011,8 +2063,8 @@ int main()
 						{
 							switch (eqinp)
 							{
-							case 72: case 'w': case 'W': {if (help > 0) help--; }break;
-							case 80: case 's': case 'S': {if (help < 3) help++; }break;
+							case 'u': {if (help > 0) help--; }break;
+							case 'd': {if (help < 3) help++; }break;
 							case 13:
 							{
 								switch (help)
@@ -2063,9 +2115,9 @@ int main()
 						{
 							switch (eqinp)
 							{
-							case 72: case 'w': case 'W': {if (help > 0) help--; }break;
-							case 80: case 's': case 'S': {if (help < 2) help++; }break;
-							case 13:
+							case 'u': {if (help > 0) help--; }break;
+							case 'd': {if (help < 2) help++; }break;
+							case 'c':
 							{
 								switch (help)
 								{
@@ -2123,7 +2175,7 @@ int main()
 							else { std::cout << " "; }
 							std::cout << "Anuluj"; a++;
 						}
-						eqinp = _getch();
+						eqinp = event_manager.get_input();
 					}
 				}
 				else if (help == 3)
@@ -2182,7 +2234,7 @@ int main()
 			item[eq.content[eq.x][eq.y]].printopis();
 			if (change == 0)
 			{
-				inp = _getch();
+				inp = event_manager.get_input();
 			}
 
 		}break;
