@@ -519,29 +519,54 @@ public:
 	}
 };
 
+class Text {
+public:
+	sf::Text text;
+	sf::Font font;
+	sf::Color color;
+	float pos_x, pos_y;
+	Text(float _pos_x, float _pos_y) {
+		//color = _color;
+		pos_x = _pos_x;
+		pos_y = _pos_y;
+		set_font();
+	}
+	void set_font() {
+		font.loadFromFile("font.ttf");
+		text.setFont(font);
+		text.setCharacterSize(16);
+		text.setFillColor(sf::Color::White);
+		//text.setOutlineColor(sf::Color::Black);
+		//text.setOutlineThickness(5);
+		text.setPosition(pos_x, pos_y);
+	}
+};
 
+Text health(450, 330);
 
 class Engine
 {
 public:
-	int size_x;
-	int size_y;
+	int size_x = 14;
+	int size_y = 14;
+	int tile_size = 32;
 	Tile gameboard[14][14] = {};
 	Tile overlayboard[14][14] = {1};
-	void set_size() {
-		size_x = 14;
-		size_y = 14;
-	}
+	Tile map[10][10];
+
 	Engine() {
-		set_size();
 		for (int i = 0; i < size_x; i++) {
 			for (int j = 0; j < size_y; j++) {
 				gameboard[i][j].set_sprite(1);
-				gameboard[i][j].set_position(j * 32, i * 32);
+				gameboard[i][j].set_position(j * tile_size, i * tile_size);
 				overlayboard[i][j].set_sprite(18);
-				overlayboard[i][j].set_position(j * 32, i * 32);
+				overlayboard[i][j].set_position(j * tile_size, i * tile_size);
 			}
 		}
+	}
+
+	float get_board_size() {
+		return size_x * tile_size;
 	}
 
 	void set_gameboard() {
@@ -592,24 +617,51 @@ public:
 		}
 
 	}
+	void set_map() {
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				map[i][j].set_sprite(1);
+				map[i][j].set_position(j * 32 + get_board_size(), i * 32);
+			}
+		}
+	}
+	void draw_map(sf::RenderWindow& _window) {
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				_window.draw(map[j][i].sprite);
+			}
+		}
+	}
+	void set_ui() {
+		health.text.setString("Health:" + to_string(p.chp));
+	}
+	void draw_ui(sf::RenderWindow& _window) {
+		_window.draw(health.text);
+	}
+	void floorprint() {
+		window.clear();
+		set_gameboard();
+		draw_gameboard(window);
+		set_map();
+		draw_map(window);
+		set_ui();
+		draw_ui(window);
+		window.display();
+	}
+	void overlayprint()
+	{
+		window.clear();
+		draw_gameboard(window);
+		draw_overlayboard(window);
+		window.display();
+	}
 };
 
 
 Engine engine;
 
-void floorprint() {
-	window.clear();
-	engine.set_gameboard();
-	engine.draw_gameboard(window);
-	window.display();
-}
-void overlayprint()
-{
-	window.clear();
-	engine.draw_gameboard(window);
-	engine.draw_overlayboard(window);
-	window.display();
-}
+
+
 
 
 int magicmenu, known_spells = 4, magic = 0, magicfirst;
@@ -931,7 +983,7 @@ public:
 			}break;
 			}
 		}
-		overlayprint();
+		engine.overlayprint();
 		}
 	}
 	Zaklecie() {}
@@ -1132,7 +1184,7 @@ void mapcontrol(int a, int b) //poruszanie sie postaci, zadawanie obra�e�, p
 	else if (board.walls[hcx + a][hcy + b] > 0 && board.walls[hcx + a][hcy + b] < 5)
 	{
 		board.walls[hcx + a][hcy + b]--; p.movesleft--;
-		floorprint();
+		engine.floorprint();
 	}
 	else if (board.walls[hcx + a][hcy + b] == 10) //zmiana pi�tra
 	{
@@ -1156,7 +1208,7 @@ void mapcontrol(int a, int b) //poruszanie sie postaci, zadawanie obra�e�, p
 		minimap.mmap();
 		units.gen();
 		secretrooms();
-		floorprint();
+		engine.floorprint();
 		p.floor_no++;
 	}
 	if (board.items[hcx][hcy] > 0) //podnoszenie przedmiot�w
@@ -1231,7 +1283,7 @@ public:
 						for (int k = 0; k < en[c].spd; k++)
 						{
 							Sleep(50);
-							floorprint();
+							engine.floorprint();
 							if (abs((i + dx) - hcx) >= abs((j + dy) - hcy)) //je�eli jednosta jest dalej w poziomie niz w pionie
 							{
 								if ((i + dx) - hcx < 0) //je�eli jenostka jest na lewo od gracza
@@ -1538,8 +1590,8 @@ int main()
 
 	window.setIcon(image.getSize().x, image.getSize().y, image.getPixelsPtr());*/
 
-	char inp = ':)';
-	char eqinp = ':)';
+	char inp = 'X';
+	char eqinp = 'X';
 	walls.gen();
 	minimap.mmap();
 	units.gen();
@@ -1642,7 +1694,7 @@ int main()
 				case 'e': case 'E': //ekwipunek;
 				{
 					menuhandler = 2;
-					inp = ':)';
+					inp = 'X';
 					help = 0;
 					change = 1;
 				}break;
@@ -1722,7 +1774,7 @@ int main()
 											}
 											else
 											{
-												floorprint();
+												engine.floorprint();
 											}
 										}
 									}
@@ -1748,7 +1800,7 @@ int main()
 											magic = 0;
 										}
 										engine.overlayboard[spellx + 1][spelly + 1].set_sprite(17);
-										overlayprint();
+										engine.overlayprint();
 										while (magic == 2)
 										{
 											engine.reset_overlayboard();
@@ -1790,12 +1842,12 @@ int main()
 													}
 												}
 												engine.overlayboard[spellx + 1][spelly + 1].set_sprite(17);
-												overlayprint();
+												engine.overlayprint();
 												inp = _getch();
 											}
 											else
 											{
-												floorprint();
+												engine.floorprint();
 											}
 										}
 									}
@@ -1879,7 +1931,7 @@ int main()
 				}
 				
 				p.movesleft = p.spd;
-				inp = ':)';
+				inp = 'X';
 				nextturn.reset(); //reset statystyk
 			}
 			if (p.cexp >= p.lvlupexp) //zdobywanie poziomow
@@ -1900,7 +1952,7 @@ int main()
 				hry = hcy / rs;
 				board.units[hcx][hcy] = 2;
 				printstats();
-				floorprint();						//printownie pod�ogi(co ruch)
+				engine.floorprint();					//printownie pod�ogi(co ruch)
 				SetConsoleCursorPosition(handle, { 0, 16 });
 				SetConsoleTextAttribute(handle, 7);
 				SetConsoleCursorPosition(handle, { 0, 0 });
@@ -1943,11 +1995,11 @@ int main()
 			}break;
 			case 'e': case 'E': //mapa
 			{
-				inp = ':)';
+				inp = 'X';
 				menuhandler = 1;
 				change = 1;
 				cout << setfill(' ');
-				floorprint();
+				engine.floorprint();
 			}break;
 			case 13: //akcje zwiazane z przedmiotami
 			{
