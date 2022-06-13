@@ -543,6 +543,64 @@ public:
 };
 
 Text health(450, 330);
+Text expe(450, 350);
+Text armor(450, 370);
+Text magic_res(450, 390);
+Text damage(450, 410);
+Text speed(450, 430);
+Text mana(450, 450);
+Text character_select(150,250);
+
+class Event_manager {
+public:
+	sf::Event event;
+	char get_input() {
+		cout << "ok" << endl;
+		while (window.pollEvent(event))
+		{
+				if (event.type == sf::Event::Closed)
+					window.close();
+				if (event.type == sf::Event::TextEntered) {
+					
+					switch (event.text.unicode) {
+					case 87: case 119:{//up
+						return 'u'; break;
+					}
+					case 65: case 97:{//left
+						return 'l';break;
+					}
+					case 83: case 115: {//down
+						return 'd';break;
+					}
+					case 68: case 100:{//right
+						return 'r';break;
+					}
+					case 69: case 101: {//equipment
+						return 'e';break;
+					}
+					case 77: case 109: {//magic
+						return 'm';break;
+					}
+					case 13: {//confirm
+						cout << event.text.unicode;
+						return 'c';break;
+					}
+					case 82: case 114: {//turn
+						return 't';break;
+					}
+
+					}
+
+				}
+				else {
+					return 'X';
+				}
+
+		}
+	}
+};
+
+Event_manager event_manager;
 
 class Engine
 {
@@ -563,6 +621,7 @@ public:
 				overlayboard[i][j].set_position(j * tile_size, i * tile_size);
 			}
 		}
+		set_ui_colors();
 	}
 
 	float get_board_size() {
@@ -632,12 +691,43 @@ public:
 			}
 		}
 	}
+	void set_ui_colors() {
+		armor.text.setFillColor(sf::Color::Yellow);
+		magic_res.text.setFillColor(sf::Color::Cyan);
+		damage.text.setFillColor(sf::Color::Red);
+		speed.text.setFillColor(sf::Color::Green);
+		mana.text.setFillColor(sf::Color::Blue);
+		character_select.text.setFillColor(sf::Color::Blue);
+		character_select.text.setLetterSpacing(1);
+		character_select.text.setCharacterSize(32);
+	}
 	void set_ui() {
-		health.text.setString("Health:" + to_string(p.chp));
+		health.text.setString("Health: " + to_string(p.chp) + "/" + to_string(p.hp));
+		expe.text.setString("Exp: " + to_string(p.cexp));
+		armor.text.setString("Armor: " + to_string(p.armor));
+		magic_res.text.setString("Magic res.: " + to_string(p.mr));
+		damage.text.setString("Damage: " + to_string(p.dmg));
+		speed.text.setString("Speed: " + to_string(p.movesleft) + "/" + to_string(p.spd));
+		mana.text.setString("Mana: " + to_string(p.cmana) + "/" + to_string(p.mana));
 	}
 	void draw_ui(sf::RenderWindow& _window) {
 		_window.draw(health.text);
+		_window.draw(expe.text);
+		_window.draw(armor.text);
+		_window.draw(magic_res.text);
+		_window.draw(damage.text);
+		_window.draw(speed.text);
+		if (hero != 0) {
+		_window.draw(mana.text);
+		}
 	}
+	void print_character_selection(sf::RenderWindow& _window, string _character_select){
+		window.clear();
+		character_select.text.setString(_character_select);
+		_window.draw(character_select.text);
+		window.display();
+	}
+
 	void floorprint() {
 		window.clear();
 		set_gameboard();
@@ -1022,23 +1112,23 @@ Zaklecie("Boski Wyrok         ", 2, 20, "Zabija wybranego wroga", boskiwyrok),
 
 //do zastapienia
 
-
-void deathanim(short a, short b) // animacja przy �mierci lub escape DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	for (short i = 26; i >= 0; i -= 2)
-	{
-		SetConsoleCursorPosition(handle, { i, a });
-		Sleep(40 - b);
-		cout << setw(2) << "  ";
-	}
-	for (short i = 0; i <= 26; i += 2)
-	{
-		SetConsoleCursorPosition(handle, { i, (short)(a + 1) });
-		Sleep(37 - b);
-		cout << setw(2) << "  ";
-	}
-
-}
+//
+//void deathanim(short a, short b) // animacja przy �mierci lub escape DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
+//{
+//	for (short i = 26; i >= 0; i -= 2)
+//	{
+//		SetConsoleCursorPosition(handle, { i, a });
+//		Sleep(40 - b);
+//		cout << setw(2) << "  ";
+//	}
+//	for (short i = 0; i <= 26; i += 2)
+//	{
+//		SetConsoleCursorPosition(handle, { i, (short)(a + 1) });
+//		Sleep(37 - b);
+//		cout << setw(2) << "  ";
+//	}
+//
+//}
 void ramkaeq() //funkcja wypisuj�ca ramk� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
 	SetConsoleTextAttribute(handle, 12);
@@ -1074,54 +1164,55 @@ void ramkaeq() //funkcja wypisuj�ca ramk� DO USUNIECIA DO USUNIECIA DO USUNI
 	}
 	cout << setfill(' ');
 }
-void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	for (short i = 0; i < 7; i++)
-	{
-		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), i });
-		std::cout << setw(23) << " " << endl;
-	}
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 0 });
-	SetConsoleTextAttribute(handle, 15);
-	std::cout << "exp: " << p.cexp << " / " << p.lvlupexp << "  LVL: " << p.lvl;
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 1 });
-	double ratio = (p.chp * 1.0) / (p.hp * 1.0);
-	for (double i = 0.0; i < 10.0; i++)
-	{
-		if ((i / 10) < ratio)
-		{
-			SetConsoleTextAttribute(handle, 192);
-			std::cout << "  ";
-		}
-		else
-		{
-			SetConsoleTextAttribute(handle, 128);
-			std::cout << "  ";
-		}
-	}
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 2 });
-	SetConsoleTextAttribute(handle, 15);
-	std::cout << p.chp << " / " << p.hp;
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 3 });
-	SetConsoleTextAttribute(handle, 14);
-	std::cout << "Armor: " << p.armor;
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 4 });
-	SetConsoleTextAttribute(handle, 11);
-	std::cout << "Magic Res.: " << p.mr;
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 5 });
-	SetConsoleTextAttribute(handle, 4);
-	std::cout << "Damage: " << p.dmg;
-	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 6 });
-	SetConsoleTextAttribute(handle, 8);
-	std::cout << "Speed: " << p.movesleft << " / " << p.spd << "   ";
-	if (hero != 0)
-	{
-		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 7 });
-		SetConsoleTextAttribute(handle, 9);
-		std::cout << "Mana: " << p.cmana << " / " << p.mana << "   ";
-	}
+//void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
+//{
+//	for (short i = 0; i < 7; i++)
+//	{
+//		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), i });
+//		std::cout << setw(23) << " " << endl;
+//	}
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 0 });
+//	SetConsoleTextAttribute(handle, 15);
+//	std::cout << "exp: " << p.cexp << " / " << p.lvlupexp << "  LVL: " << p.lvl;
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 1 });
+//	double ratio = (p.chp * 1.0) / (p.hp * 1.0);
+//	for (double i = 0.0; i < 10.0; i++)
+//	{
+//		if ((i / 10) < ratio)
+//		{
+//			SetConsoleTextAttribute(handle, 192);
+//			std::cout << "  ";
+//		}
+//		else
+//		{
+//			SetConsoleTextAttribute(handle, 128);
+//			std::cout << "  ";
+//		}
+//	}
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 2 });
+//	SetConsoleTextAttribute(handle, 15);
+//	std::cout << p.chp << " / " << p.hp;
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 3 });
+//	SetConsoleTextAttribute(handle, 14);
+//	std::cout << "Armor: " << p.armor;
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 4 });
+//	SetConsoleTextAttribute(handle, 11);
+//	std::cout << "Magic Res.: " << p.mr;
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 5 });
+//	SetConsoleTextAttribute(handle, 4);
+//	std::cout << "Damage: " << p.dmg;
+//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 6 });
+//	SetConsoleTextAttribute(handle, 8);
+//	std::cout << "Speed: " << p.movesleft << " / " << p.spd << "   ";
+//	if (hero != 0)
+//	{
+//		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 7 });
+//		SetConsoleTextAttribute(handle, 9);
+//		std::cout << "Mana: " << p.cmana << " / " << p.mana << "   ";
+//	}
+//
+//}
 
-}
 void spellborderprint() //wypisywanie ramki menu zakl�� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 {
 	SetConsoleCursorPosition(handle, { 0, 8 });
@@ -1592,6 +1683,7 @@ int main()
 
 	char inp = 'X';
 	char eqinp = 'X';
+	string champion_select;
 	walls.gen();
 	minimap.mmap();
 	units.gen();
@@ -1609,35 +1701,39 @@ int main()
 			SetConsoleCursorPosition(handle, { 1, 7 });
 			switch (inp)
 			{
-			case 75: case 'a': case 'A': //left
+			case 'l': //left
 			{
 				if (help > 0) help--;
 			}break;
-			case 77: case 'd': case 'D': //right
+			case 'r': //right
 			{
 				if (help < 3) help++;
 			}break;
-			case 13:
+			case 'c':
 			{
 				hero = help;
 				change = 1;
 				menuhandler = 1;
 			}break;
 			}
-			if (inp != 13)
+			if (inp != 'c')
 			{
-				if (help == 0) std::cout << ">";
-				else std::cout << " ";
-				std::cout << "Fighter  ";
-				if (help == 1) std::cout << ">";
-				else std::cout << " ";
-				std::cout << "Rogue  ";
-				if (help == 2) std::cout << ">";
-				else std::cout << " ";
-				std::cout << "Mage  ";
-				if (help == 3) std::cout << ">";
-				else std::cout << " ";
-				std::cout << "Cleric  ";
+				champion_select = "";
+				if (help == 0) champion_select.append(">");
+				else champion_select.append(" ");
+				champion_select.append("Fighter  ");
+				
+				
+				if (help == 1) champion_select.append(">");
+				else champion_select.append(" ");
+				champion_select.append("Rogue  ");
+				if (help == 2) champion_select.append(">");
+				else champion_select.append(" ");
+				champion_select.append("Mage  ");
+				if (help == 3) champion_select.append(">");
+				else champion_select.append(" ");
+				champion_select.append("Cleric  ");
+				engine.print_character_selection(window, champion_select);
 			}
 			else //przypisanie statystyk postaci
 			{
@@ -1664,7 +1760,7 @@ int main()
 			}
 			if (change == 0)
 			{
-				inp = _getch();
+				inp = event_manager.get_input();
 			}
 
 		}break;
@@ -1675,23 +1771,23 @@ int main()
 			{
 				switch (inp)
 				{
-				case 75: case 'a': case 'A': //left
+				case 'l': //left
 				{
 					mapcontrol(0, -1);
 				}break;
-				case 77: case 'd': case 'D': //right
+				case 'r': //right
 				{
 					mapcontrol(0, 1);
 				}break;
-				case 72: case 'w': case 'W': //up
+				case 'u': //up
 				{
 					mapcontrol(-1, 0);
 				}break;
-				case 80: case 's': case 'S': //down
+				case 'd': //down
 				{
 					mapcontrol(1, 0);
 				}break;
-				case 'e': case 'E': //ekwipunek;
+				case 'e': //ekwipunek;
 				{
 					menuhandler = 2;
 					inp = 'X';
@@ -1702,7 +1798,7 @@ int main()
 				{
 					if (hero != 0) //jeżeli nie jest wojownikiem
 					{
-						inp = ' ';
+						inp = 'X';
 						magic = 1;
 						magicfirst = 0;
 						spellborderprint();
@@ -1710,11 +1806,11 @@ int main()
 						{
 							switch (inp)
 							{
-							case 72: case 'w': case 'W': {if (magicmenu > 0) magicmenu--; }break;
-							case 80: case 's': case 'S': {if (magicmenu < known_spells) magicmenu++; }break;
-							case 13:
+							case 'u': {if (magicmenu > 0) magicmenu--; }break;
+							case 'd': {if (magicmenu < known_spells) magicmenu++; }break;
+							case 'c':
 							{
-								inp = ' ';
+								inp = 'X';
 								if (p.cmana >= z[hero - 1][magicmenu].manacost)
 								{
 									p.cmana -= z[hero - 1][magicmenu].manacost;
@@ -1733,29 +1829,29 @@ int main()
 											engine.reset_overlayboard();
 											switch (inp)
 											{
-											case 75: case 'a': case 'A': //left
+											case 'l': //left
 											{
 												if (spelly >= 0) spelly--;
 
 											}break;
-											case 77: case 'd': case 'D': //right
+											case 'r': //right
 											{
 												if (spelly < 12) spelly++;
 											}break;
-											case 72: case 'w': case 'W': //up
+											case 'u': //up
 											{
 												if (spellx >= 0) spellx--;
 											}break;
-											case 80: case 's': case 'S': //down
+											case 'd': //down
 											{
 												if (spellx < 12) spellx++;
 											}break;
-											case 13: //zatwierdzenie
+											case 'c': //zatwierdzenie
 											{
 												z[hero - 1][magicmenu].cast();
 												magic = 0;
 											}break;
-											case 'R': case 'r': //obracanie (wyko�ystywanie w jedym zakl�ciu)
+											case 't': //obracanie (wyko�ystywanie w jedym zakl�ciu)
 											{
 												if (rotation < 8)rotation++;
 												else rotation = 0;
@@ -1770,7 +1866,7 @@ int main()
 											
 											if (magic != 0)
 											{
-												inp = _getch();
+												inp = event_manager.get_input();
 											}
 											else
 											{
@@ -1806,13 +1902,13 @@ int main()
 											engine.reset_overlayboard();
 											switch (inp)
 											{
-											case 75: case 'a': case 'A': {if (magicchoice == 0) { magicchoice = how_many_enemies - 1; }
+											case 'l': {if (magicchoice == 0) { magicchoice = how_many_enemies - 1; }
 												   else { magicchoice--; }
 											}break;
-											case 77: case 'd': case 'D': {if (magicchoice >= how_many_enemies - 1) { magicchoice = 0; }
+											case 'r': {if (magicchoice >= how_many_enemies - 1) { magicchoice = 0; }
 												   else { magicchoice++; }
 											}break;
-											case 13:
+											case 'c':
 											{
 												z[hero - 1][magicmenu].cast();
 												magic = 0;
@@ -1843,7 +1939,7 @@ int main()
 												}
 												engine.overlayboard[spellx + 1][spelly + 1].set_sprite(17);
 												engine.overlayprint();
-												inp = _getch();
+												inp = event_manager.get_input();
 											}
 											else
 											{
@@ -1859,10 +1955,10 @@ int main()
 									std::cout << "Brak many                         ";
 								}
 							}break;
-							case 'M': case 'm':
+							case 'm':
 							{
 								magic = 0;
-								inp = ' ';
+								inp = 'X';
 							}break;
 							}
 							if (magicmenu < magicfirst) magicfirst--;
@@ -1885,7 +1981,7 @@ int main()
 							}
 							if (change == 0)
 							{
-								inp = _getch();
+								inp = event_manager.get_input();
 							}
 						}
 					}
@@ -1951,14 +2047,14 @@ int main()
 				hrx = hcx / rs; //hero room x = hero coordinate x / room size
 				hry = hcy / rs;
 				board.units[hcx][hcy] = 2;
-				printstats();
+				/*printstats();*/
 				engine.floorprint();					//printownie pod�ogi(co ruch)
 				SetConsoleCursorPosition(handle, { 0, 16 });
 				SetConsoleTextAttribute(handle, 7);
 				SetConsoleCursorPosition(handle, { 0, 0 });
 				if (p.movesleft > 0)
 				{
-					inp = _getch();
+					inp = event_manager.get_input();
 				}
 			}
 			if (respawn == 1 && p.chp <= 0) //zaklecie kapalana (ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA )
@@ -1968,32 +2064,34 @@ int main()
 		}break;
 		case 2: //ekwipunek
 		{
+			cout << "Deniorr" << endl;
 			SetConsoleCursorPosition(handle, { 0, 0 });
 			SetConsoleTextAttribute(handle, 7);
 			if (change == 1) //ramka do ekwipunku
 			{
 				ramkaeq(); //moze do zmiany ????
+				
 			}
 			change = 0;
 			switch (inp)
 			{
-			case 75: case 'a': case 'A': //left
+			case 'l': //left
 			{
 				if (eq.x > 0) eq.x--;
 			}break;
-			case 77: case 'd': case 'D': //right
+			case 'r': //right
 			{
 				if (eq.x < 4) eq.x++;
 			}break;
-			case 72: case 'w': case 'W': //up
+			case 'u': //up
 			{
 				if (eq.y > 0) eq.y--;
 			}break;
-			case 80: case 's': case 'S': //down
+			case 'd': //down
 			{
 				if (eq.y < 3) eq.y++;
 			}break;
-			case 'e': case 'E': //mapa
+			case 'e': //powrot 
 			{
 				inp = 'X';
 				menuhandler = 1;
@@ -2001,18 +2099,18 @@ int main()
 				cout << setfill(' ');
 				engine.floorprint();
 			}break;
-			case 13: //akcje zwiazane z przedmiotami
+			case 'c': //akcje zwiazane z przedmiotami
 			{
 				if (help < 3 && eq.content[eq.x][eq.y] != 0)
 				{
-					while (inp != '0')
+					while (inp != 'X')
 					{
 						if (item[eq.content[eq.x][eq.y]].consumable == 1)
 						{
 							switch (eqinp)
 							{
-							case 72: case 'w': case 'W': {if (help > 0) help--; }break;
-							case 80: case 's': case 'S': {if (help < 3) help++; }break;
+							case 'u': {if (help > 0) help--; }break;
+							case 'd': {if (help < 3) help++; }break;
 							case 13:
 							{
 								switch (help)
@@ -2026,24 +2124,24 @@ int main()
 									p.spd += item[eq.content[eq.x][eq.y]].spd;
 									p.dmg += item[eq.content[eq.x][eq.y]].dmg;
 									eq.content[eq.x][eq.y] = 0;
-									inp = '0';
+									inp = 'X';
 								}break;
 								case 1:	//przenoszenie
 								{
 									eq.choicey = eq.y;
 									eq.choicex = eq.x;
 									help = 3;
-									inp = '0';
+									inp = 'X';
 								} break;
 								case 2: //wyrzucanie
 								{
 									dropitem(hcx, hcy, eq.content[eq.x][eq.y]);
 									eq.content[eq.x][eq.y] = 0;
-									inp = '0';
+									inp = 'X';
 								} break;
 								case 3: //anulowanie 								
 								{
-									inp = '0';
+									inp = 'X';
 								} break;
 								}
 								SetConsoleCursorPosition(handle, { 33, 0 });
@@ -2063,9 +2161,9 @@ int main()
 						{
 							switch (eqinp)
 							{
-							case 72: case 'w': case 'W': {if (help > 0) help--; }break;
-							case 80: case 's': case 'S': {if (help < 2) help++; }break;
-							case 13:
+							case 'u': {if (help > 0) help--; }break;
+							case 'd': {if (help < 2) help++; }break;
+							case 'c':
 							{
 								switch (help)
 								{
@@ -2074,17 +2172,17 @@ int main()
 									eq.choicey = eq.y;
 									eq.choicex = eq.x;
 									help = 3;
-									inp = '0';
+									inp = 'X';
 								} break;
 								case 1: //wyrzucanie
 								{
 									dropitem(hcx, hcy, eq.content[eq.x][eq.y]);
 									eq.content[eq.x][eq.y] = 0;
-									inp = '0';
+									inp = 'X';
 								} break;
 								case 2: //anulowanie 								
 								{
-									inp = '0';
+									inp = 'X';
 								} break;
 								}
 								SetConsoleCursorPosition(handle, { 33, 0 });
@@ -2100,7 +2198,7 @@ int main()
 							}break;
 							}
 						}
-						if (eqinp != 13 && help != 3) //printowanie wyboru akcji przedmiotu (przenies, wyrzuc, uzyj, anuluj)
+						if (eqinp != 'c' && help != 3) //printowanie wyboru akcji przedmiotu (przenies, wyrzuc, uzyj, anuluj)
 						{
 							short int a = 0;
 							if (item[eq.content[eq.x][eq.y]].consumable == 1) 
@@ -2123,7 +2221,7 @@ int main()
 							else { std::cout << " "; }
 							std::cout << "Anuluj"; a++;
 						}
-						eqinp = _getch();
+						eqinp = event_manager.get_input();
 					}
 				}
 				else if (help == 3)
@@ -2182,21 +2280,21 @@ int main()
 			item[eq.content[eq.x][eq.y]].printopis();
 			if (change == 0)
 			{
-				inp = _getch();
+				inp = event_manager.get_input();
 			}
 
 		}break;
 		}
-	} while (inp != 27 && p.chp > 0);
+	} while (/*inp != 27&& */ p.chp > 0);
 	SetConsoleCursorPosition(handle, { 14, 28 }); //animacja �mierci i zako�czenie gry
 	SetConsoleTextAttribute(handle, 240);
-	deathanim(0, 0);
-	deathanim(2, 6);
-	deathanim(4, 12);
-	deathanim(6, 18);
-	deathanim(8, 24);
-	deathanim(10, 27);
-	deathanim(12, 30);
+	//deathanim(0, 0);
+	//deathanim(2, 6);
+	//deathanim(4, 12);
+	//deathanim(6, 18);
+	//deathanim(8, 24);
+	//deathanim(10, 27);
+	//deathanim(12, 30);
 	SetConsoleCursorPosition(handle, { 9, 6 });
 	SetConsoleTextAttribute(handle, 252);
 	std::cout << "GAME OVER";
@@ -2209,3 +2307,5 @@ int main()
 
 
 //dodatkowe pi�tra, z�oto
+
+//mana sie tylko nie wyświetla gdy hero==0?
