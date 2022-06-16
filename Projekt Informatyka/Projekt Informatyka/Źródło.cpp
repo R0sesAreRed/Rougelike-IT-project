@@ -361,7 +361,8 @@ public:
 		{
 			for (int j = 0; j < 10; j++)
 			{
-				minimaptech[i][j] = ((board.walls[i * rs][j * rs + 5]) == 0 ? 0 : 1) + ((board.walls[i * rs + 5][(j * rs) + 11] == 0 ? 0 : 1) * 2) + ((board.walls[(i * rs) + 11][j * rs + 5] == 0 ? 0 : 1) * 4) + ((board.walls[i * rs + 5][j * rs] == 0 ? 0 : 1) * 8);
+				//zamiast tego
+				/*minimaptech[i][j] = ((board.walls[i * rs][j * rs + 5]) == 0 ? 0 : 1 ) + ((board.walls[i * rs + 5][(j * rs) + 11] == 0 ? 0 : 1) * 2) + ((board.walls[(i * rs) + 11][j * rs + 5] == 0 ? 0 : 1) * 4) + ((board.walls[i * rs + 5][j * rs] == 0 ? 0 : 1) * 8);
 				switch (minimaptech[i][j])
 				{
 				case 15: {map[i][j] = ' '; }break;
@@ -380,7 +381,9 @@ public:
 				case 2: {map[i][j] = 0xB9; }break;
 				case 1: {map[i][j] = 0xCB; }break;
 				case 0: {map[i][j] = 0xCE; }
-				}
+				}*/
+				//to
+				map[i][j] = ((board.walls[i * rs][j * rs + 5]) == 0 ? 0 : 1 ) + ((board.walls[i * rs + 5][(j * rs) + 11] == 0 ? 0 : 1) * 2) + ((board.walls[(i * rs) + 11][j * rs + 5] == 0 ? 0 : 1) * 4) + ((board.walls[i * rs + 5][j * rs] == 0 ? 0 : 1) * 8);
 			}
 		}
 	}
@@ -502,7 +505,30 @@ TextureType texturetype[] = {
 	TextureType("item10"),	//15
 	TextureType("floor"),	//16
 	TextureType("spelloverlay"), //17
-	TextureType("emptyspelloverlay") //18
+	TextureType("emptyspelloverlay"), //18
+	TextureType("eq_image"), //19
+	TextureType("highlight"), //20
+	TextureType("highlight2") //21
+};
+
+TextureType map_texture[] = {
+	TextureType("map0"),
+	TextureType("map1"),
+	TextureType("map2"),
+	TextureType("map3"),
+	TextureType("map4"),
+	TextureType("map5"),
+	TextureType("map6"),
+	TextureType("map7"),
+	TextureType("map8"),
+	TextureType("map9"),
+	TextureType("map10"),
+	TextureType("map11"),
+	TextureType("map12"),
+	TextureType("map13"),
+	TextureType("map14"),
+	TextureType("map15")
+	//TextureType("map_overlay")
 };
 
 class Tile {
@@ -513,6 +539,9 @@ public:
 	sf::Sprite sprite;
 	void set_sprite(int i) {
 		sprite.setTexture(texturetype[i].texture);
+	}
+	void set_map_sprite(int i) {
+		sprite.setTexture(map_texture[i].texture);
 	}
 	void set_position(int x, int y) {
 		sprite.setPosition(x, y);
@@ -608,9 +637,15 @@ public:
 	int size_x = 14;
 	int size_y = 14;
 	int tile_size = 32;
+	int eq_tile_size = 72;
 	Tile gameboard[14][14] = {};
 	Tile overlayboard[14][14] = {1};
 	Tile map[10][10];
+	Tile equipment[5][4];
+	Tile equipment_highlight[5][4];
+	bool in_equipment = false;
+	Tile eq_image;
+
 
 	Engine() {
 		for (int i = 0; i < size_x; i++) {
@@ -619,9 +654,18 @@ public:
 				gameboard[i][j].set_position(j * tile_size, i * tile_size);
 				overlayboard[i][j].set_sprite(18);
 				overlayboard[i][j].set_position(j * tile_size, i * tile_size);
+				
+			}
+		}
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 4; j++)
+			{
+				equipment[i][j].set_position(i * eq_tile_size + 28, j * eq_tile_size + 28);
+				equipment_highlight[i][j].set_position(i * eq_tile_size + 28, j * eq_tile_size + 28);
 			}
 		}
 		set_ui_colors();
+		set_equipment();
 	}
 
 	float get_board_size() {
@@ -653,6 +697,29 @@ public:
 	{
 		overlayboard[i+1][j+1].set_sprite(17);
 	}
+	void set_equipment() {
+		eq_image.set_sprite(19);
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 4; j++)
+			{
+				//zamiast tego 
+				equipment[i][j].set_sprite(1);
+				
+				equipment_highlight[i][j].set_sprite(18);
+				//to
+				/*
+				switch(eq.content[i][j])
+				case 0: setsprite(18)
+				case 1: setsprite(21)
+				case 2: setsprite(22)
+				case 3: setsprite(23)
+				*/
+				
+			}
+		}
+		equipment_highlight[eq.x][eq.y].set_sprite(20);
+		equipment_highlight[eq.choicex][eq.choicey].set_sprite(21);
+	}
 	void draw_gameboard(sf::RenderWindow& _window) {
 		for (int i = 0; i < 14; i++) {
 			for (int j = 0; j < 14; j++) {
@@ -664,6 +731,16 @@ public:
 		for (int i = 0; i < 14; i++) {
 			for (int j = 0; j < 14; j++) {
 				_window.draw(overlayboard[j][i].sprite);
+			}
+		}
+	}
+	void draw_eq(sf::RenderWindow& _window) {
+		_window.draw(eq_image.sprite);
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 5; j++)
+			{
+				_window.draw(equipment[j][i].sprite);
+				_window.draw(equipment_highlight[j][i].sprite);
 			}
 		}
 	}
@@ -679,7 +756,7 @@ public:
 	void set_map() {
 		for (int i = 0; i < 10; i++) {
 			for (int j = 0; j < 10; j++) {
-				map[i][j].set_sprite(1);
+				map[i][j].set_map_sprite(minimap.map[i][j]);
 				map[i][j].set_position(j * 32 + get_board_size(), i * 32);
 			}
 		}
@@ -736,6 +813,10 @@ public:
 		draw_map(window);
 		set_ui();
 		draw_ui(window);
+		if (in_equipment) {
+			set_equipment();
+			draw_eq(window);
+		}
 		window.display();
 	}
 	void overlayprint()
@@ -1129,41 +1210,41 @@ Zaklecie("Boski Wyrok         ", 2, 20, "Zabija wybranego wroga", boskiwyrok),
 //	}
 //
 //}
-void ramkaeq() //funkcja wypisuj�ca ramk� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-{
-	SetConsoleTextAttribute(handle, 12);
-	std::cout << (char)0xC9 << setw(6) << setfill((char)0xCD) << (char)0xCB;
-	SetConsoleTextAttribute(handle, 7);
-	std::cout << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xBB;
-	for (int i = 1; i < 4; i++)
-	{
-		SetConsoleTextAttribute(handle, 12);
-		SetConsoleCursorPosition(handle, { 0, (short)(4 * i) });
-		std::cout << (char)0xCC << setw(6) << (char)0xCE;
-		SetConsoleTextAttribute(handle, 7);
-		std::cout << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xB9;
-	}
-	SetConsoleCursorPosition(handle, { 0, 16 });
-	SetConsoleTextAttribute(handle, 12);
-	std::cout << (char)0xC8 << setw(6) << (char)0xCA;
-	SetConsoleTextAttribute(handle, 7);
-	std::cout << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xBC;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 12);
-			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 1) });
-			std::cout << (char)0xBA;
-			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 2) });
-			std::cout << (char)0xBA;
-			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 3) });
-			std::cout << (char)0xBA;
-			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 7);
-		}
-	}
-	cout << setfill(' ');
-}
+//void ramkaeq() //funkcja wypisuj�ca ramk� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
+//{
+//	SetConsoleTextAttribute(handle, 12);
+//	std::cout << (char)0xC9 << setw(6) << setfill((char)0xCD) << (char)0xCB;
+//	SetConsoleTextAttribute(handle, 7);
+//	std::cout << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xBB;
+//	for (int i = 1; i < 4; i++)
+//	{
+//		SetConsoleTextAttribute(handle, 12);
+//		SetConsoleCursorPosition(handle, { 0, (short)(4 * i) });
+//		std::cout << (char)0xCC << setw(6) << (char)0xCE;
+//		SetConsoleTextAttribute(handle, 7);
+//		std::cout << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xB9;
+//	}
+//	SetConsoleCursorPosition(handle, { 0, 16 });
+//	SetConsoleTextAttribute(handle, 12);
+//	std::cout << (char)0xC8 << setw(6) << (char)0xCA;
+//	SetConsoleTextAttribute(handle, 7);
+//	std::cout << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xBC;
+//	for (int i = 0; i < 4; i++)
+//	{
+//		for (int j = 0; j < 6; j++)
+//		{
+//			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 12);
+//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 1) });
+//			std::cout << (char)0xBA;
+//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 2) });
+//			std::cout << (char)0xBA;
+//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 3) });
+//			std::cout << (char)0xBA;
+//			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 7);
+//		}
+//	}
+//	cout << setfill(' ');
+//}
 //void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
 //{
 //	for (short i = 0; i < 7; i++)
@@ -1236,7 +1317,7 @@ void secretrooms()
 	{
 		for (int j = 0; j < 10; j++)
 		{
-			if (minimap.map[i][j] == ' ') //pok�j bez wej��
+			if (minimap.map[i][j] ==15) //pok�j bez wej��
 			{
 				for (int k = i * rs; k < i * rs + rs; k++)
 				{
@@ -1789,6 +1870,8 @@ int main()
 				}break;
 				case 'e': //ekwipunek;
 				{
+					engine.in_equipment = true;
+					engine.floorprint();
 					menuhandler = 2;
 					inp = 'X';
 					help = 0;
@@ -1998,25 +2081,25 @@ int main()
 					chry = hry;
 					nextroom.reset();
 					if (stealth == true) stealth = false; //reset ukrycia �otra (ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA )
-					SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), 0 });
-					SetConsoleTextAttribute(handle, 7);
-					for (int i = 0; i < 10; i++) //wypisywanie minimapy
-					{
-						for (int j = 0; j < 10; j++)
-						{
-							if (i == hrx && j == hry)
-							{
-								SetConsoleTextAttribute(handle, 12);
-								std::cout << minimap.map[i][j];
-								SetConsoleTextAttribute(handle, 7);
-							}
-							else
-							{
-								std::cout << minimap.map[i][j];
-							}
-						}
-						SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), (short)(i + 1) });
-					}
+					//SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), 0 });
+					//SetConsoleTextAttribute(handle, 7);
+					//for (int i = 0; i < 10; i++) //wypisywanie minimapy
+					//{
+					//	for (int j = 0; j < 10; j++)
+					//	{
+					//		if (i == hrx && j == hry)
+					//		{
+					//			SetConsoleTextAttribute(handle, 12);
+					//			std::cout << minimap.map[i][j];
+					//			SetConsoleTextAttribute(handle, 7);
+					//		}
+					//		else
+					//		{
+					//			std::cout << minimap.map[i][j];
+					//		}
+					//	}
+					//	SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), (short)(i + 1) });
+					//}
 				}
 			}
 			else
@@ -2064,12 +2147,11 @@ int main()
 		}break;
 		case 2: //ekwipunek
 		{
-			cout << "Deniorr" << endl;
 			SetConsoleCursorPosition(handle, { 0, 0 });
 			SetConsoleTextAttribute(handle, 7);
 			if (change == 1) //ramka do ekwipunku
 			{
-				ramkaeq(); //moze do zmiany ????
+				//ramkaeq(); //moze do zmiany ????
 				
 			}
 			change = 0;
@@ -2093,11 +2175,12 @@ int main()
 			}break;
 			case 'e': //powrot 
 			{
+				engine.in_equipment = false;
+				engine.floorprint();
 				inp = 'X';
 				menuhandler = 1;
 				change = 1;
 				cout << setfill(' ');
-				engine.floorprint();
 			}break;
 			case 'c': //akcje zwiazane z przedmiotami
 			{
@@ -2262,20 +2345,21 @@ int main()
 			}
 			if (change == 0) //wypisywanie ekwipunku
 			{
-				for (int i = 0; i < 5; i++)
-				{
-					for (int j = 0; j < 4; j++)
-					{
-						if (i == eq.x && j == eq.y) SetConsoleTextAttribute(handle, 12); //kursor ekwipunku
-						else if (i == 0 && j == item[eq.content[eq.x][eq.y]].eqslot - 1 && help != 3)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w kt�rym mo�na za�ozyc przedmiot pod kursorem
-						else if (i == 0 && j == item[eq.content[eq.choicex][eq.choicey]].eqslot - 1)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w ktorym mozna zalozyc przenoszony przedmiot 
-						else if (i == eq.choicex && j == eq.choicey) SetConsoleTextAttribute(handle, 13); //podswietlanie wybranego przedmiotu
-						else SetConsoleTextAttribute(handle, 7); //normalny kolor
-						SetConsoleCursorPosition(handle, { (short)(i * 6 + 1), (short)(j * 4 + 2) });
-						std::cout << item[eq.content[i][j]].sprite_no;
-						if ((i == eq.x && j == eq.y) || (i == eq.choicex && j == eq.choicey)) SetConsoleTextAttribute(handle, 7);
-					}
-				}
+				engine.floorprint();
+				//for (int i = 0; i < 5; i++)
+				//{
+				//	for (int j = 0; j < 4; j++)
+				//	{
+				//		if (i == eq.x && j == eq.y) SetConsoleTextAttribute(handle, 12); //kursor ekwipunku
+				//		else if (i == 0 && j == item[eq.content[eq.x][eq.y]].eqslot - 1 && help != 3)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w kt�rym mo�na za�ozyc przedmiot pod kursorem
+				//		else if (i == 0 && j == item[eq.content[eq.choicex][eq.choicey]].eqslot - 1)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w ktorym mozna zalozyc przenoszony przedmiot 
+				//		else if (i == eq.choicex && j == eq.choicey) SetConsoleTextAttribute(handle, 13); //podswietlanie wybranego przedmiotu
+				//		else SetConsoleTextAttribute(handle, 7); //normalny kolor
+				//		SetConsoleCursorPosition(handle, { (short)(i * 6 + 1), (short)(j * 4 + 2) });
+				//		std::cout << item[eq.content[i][j]].sprite_no;
+				//		if ((i == eq.x && j == eq.y) || (i == eq.choicex && j == eq.choicey)) SetConsoleTextAttribute(handle, 7);
+				//	}
+				//}
 			}
 			item[eq.content[eq.x][eq.y]].printopis();
 			if (change == 0)
