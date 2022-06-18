@@ -11,9 +11,6 @@
 using namespace std;
 
 
-
-HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE); //do usuniecia
-
 //zmienne globalne:
 
 sf::RenderWindow window(sf::VideoMode(800, 600), "Roguelike v1.0");
@@ -341,7 +338,6 @@ public:
 };
 Units units;
 
-
 class Equipment
 {
 public:
@@ -361,35 +357,12 @@ public:
 		{
 			for (int j = 0; j < 10; j++)
 			{
-				//zamiast tego
-				/*minimaptech[i][j] = ((board.walls[i * rs][j * rs + 5]) == 0 ? 0 : 1 ) + ((board.walls[i * rs + 5][(j * rs) + 11] == 0 ? 0 : 1) * 2) + ((board.walls[(i * rs) + 11][j * rs + 5] == 0 ? 0 : 1) * 4) + ((board.walls[i * rs + 5][j * rs] == 0 ? 0 : 1) * 8);
-				switch (minimaptech[i][j])
-				{
-				case 15: {map[i][j] = ' '; }break;
-				case 14: {map[i][j] = 0xC1; }break;
-				case 13: {map[i][j] = 0xC3; }break;
-				case 12: {map[i][j] = 0xC8; }break;
-				case 11: {map[i][j] = 0xC2; }break;
-				case 10: {map[i][j] = 0xBA; }break;
-				case 9: {map[i][j] = 0xC9; }break;
-				case 8: {map[i][j] = 0xCC; }break;
-				case 7: {map[i][j] = 0xB4; }break;
-				case 6: {map[i][j] = 0xBC; }break;
-				case 5: {map[i][j] = 0xCD; }break;
-				case 4: {map[i][j] = 0xCA; }break;
-				case 3: {map[i][j] = 0xBB; }break;
-				case 2: {map[i][j] = 0xB9; }break;
-				case 1: {map[i][j] = 0xCB; }break;
-				case 0: {map[i][j] = 0xCE; }
-				}*/
-				//to
 				map[i][j] = ((board.walls[i * rs][j * rs + 5]) == 0 ? 0 : 1 ) + ((board.walls[i * rs + 5][(j * rs) + 11] == 0 ? 0 : 1) * 2) + ((board.walls[(i * rs) + 11][j * rs + 5] == 0 ? 0 : 1) * 4) + ((board.walls[i * rs + 5][j * rs] == 0 ? 0 : 1) * 8);
 			}
 		}
 	}
 };
 Minimap minimap;
-
 
 struct Item
 {
@@ -404,26 +377,6 @@ struct Item
 	int eqslot;
 	short rarity;
 	string opis;
-	/*void printopis()
-	{
-		for (short i = 0; i < 5; i++)
-		{
-			SetConsoleCursorPosition(handle, { 34, (short)(11 + i) });
-			std::cout << setw(35) << " " << endl;
-		}
-		int c = 0, d = 1;
-		SetConsoleCursorPosition(handle, { 34, 11 });
-		for (int i = 0; i < opis.length(); i++)
-		{
-			std::cout << opis.at(i); c++;
-			if ((c > 25 && opis.at(i) == ' ') || opis.at(i) == '.')
-			{
-				SetConsoleCursorPosition(handle, { 34, (short)(11 + d) });
-				d++;
-				c = 0;
-			}
-		}
-	}*/
 };
 struct tempbuff
 {
@@ -474,7 +427,6 @@ void dropitem(int a, int b, int d)
 		c++;
 	}
 }
-
 
 class TextureType
 {
@@ -555,7 +507,6 @@ public:
 	sf::Color color;
 	float pos_x, pos_y;
 	Text(float _pos_x, float _pos_y) {
-		//color = _color;
 		pos_x = _pos_x;
 		pos_y = _pos_y;
 		set_font();
@@ -565,8 +516,6 @@ public:
 		text.setFont(font);
 		text.setCharacterSize(16);
 		text.setFillColor(sf::Color::White);
-		//text.setOutlineColor(sf::Color::Black);
-		//text.setOutlineThickness(5);
 		text.setPosition(pos_x, pos_y);
 	}
 };
@@ -581,6 +530,8 @@ Text mana(450, 450);
 Text character_select(150,250);
 Text description(10, 500);
 Text eq_select(550, 500);
+Text game_over(230, 230);
+Text end_exp(250, 350);
 
 class Event_manager {
 public:
@@ -588,11 +539,11 @@ public:
 	char get_input() {
 		while (window.pollEvent(event))
 		{
-				if (event.type == sf::Event::Closed)
-					window.close();
-				if (event.type == sf::Event::TextEntered) {
+			if (event.type == sf::Event::Closed)
+				window.close();
+			if (event.type == sf::Event::TextEntered) {
 					
-					switch (event.text.unicode) {
+				switch (event.text.unicode) {
 					case 87: case 119:{//up
 						return 'u'; break;
 					}
@@ -617,14 +568,11 @@ public:
 					case 82: case 114: {//turn
 						return 't';break;
 					}
-
-					}
-
 				}
-				else {
-					return 'X';
-				}
-
+			}
+			else {
+				return 'X';
+			}
 		}
 	}
 };
@@ -648,7 +596,6 @@ public:
 	bool display_action = false;
 	Tile eq_image;
 
-
 	Engine() {
 		for (int i = 0; i < size_x; i++) {
 			for (int j = 0; j < size_y; j++) {
@@ -670,6 +617,7 @@ public:
 		set_ui_colors();
 		set_equipment();
 		eq_select.text.setCharacterSize(20);
+		set_gameover();
 	}
 
 	float get_board_size() {
@@ -705,21 +653,14 @@ public:
 		eq_image.set_sprite(19);
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 4; j++)
-			{
-				//zamiast tego 
-				//equipment[i][j].set_sprite(1);
-				
-				equipment_highlight[i][j].set_sprite(18);
-				//to
-				
+			{		
+				equipment_highlight[i][j].set_sprite(18);				
 				switch (eq.content[i][j]) {
 				case 0: equipment[i][j].set_sprite(18);break;
 				case 1: equipment[i][j].set_sprite(6);break;
 				case 2: equipment[i][j].set_sprite(8);break;
 				case 3: equipment[i][j].set_sprite(7);break;
-				}
-				
-				
+				}			
 			}
 		}
 		equipment_highlight[eq.x][eq.y].set_sprite(20);
@@ -841,11 +782,23 @@ public:
 		draw_overlayboard(window);
 		window.display();
 	}
+	void set_gameover() {
+		game_over.text.setCharacterSize(60);
+		game_over.text.setFillColor(sf::Color::Red);
+		end_exp.text.setCharacterSize(30);
+		end_exp.text.setString("    Final score: " + to_string(p.cexp) + "\npress ENTER to quit");
+		
+	}
+	void draw_gameover(sf::RenderWindow& _window) {
+		window.clear();
+		game_over.text.setString("Game Over");
+		_window.draw(game_over.text);
+		_window.draw(end_exp.text);
+		_window.display();
+	}
 };
 
-
 Engine engine;
-
 
 int magicmenu, known_spells = 4, magic = 0, magicfirst;
 int magicchoice, how_many_enemies, spellx = 0, spelly = 0, spellhelp, rotation;
@@ -1050,32 +1003,6 @@ void improwizacja() {
 	}
 }
 
-
-/*void spelldisplay(int a, int b)
-{
-	if (board.units[spellx + a + roomx][spelly + b + roomy] > 2)
-	{
-		SetConsoleCursorPosition(handle, { (short)((spelly + 1 + b) * 2), (short)(spellx + 1 + a) });
-		SetConsoleTextAttribute(handle, 92);
-		std::cout << setw(2) << "E";
-	}
-	else if (board.units[spellx + a + roomx][spelly + b + roomy] == 2 || board.units[spellx + roomx + a][spelly + roomy + b] == 1)
-	{
-		SetConsoleCursorPosition(handle, { (short)((spelly + 1 + b) * 2), (short)(spellx + 1 + a) });
-		SetConsoleTextAttribute(handle, 95);
-		std::cout << setw(2) << 'H';
-	}
-	else
-	{
-		SetConsoleCursorPosition(handle, { (short)((spelly + 1 + b) * 2), (short)(spellx + 1 + a) });
-		SetConsoleTextAttribute(handle, 80);
-		std::cout << setw(2) << "  ";
-	}
-}*/
-
-//^ DO USUNIECIA
-
-
 class Zaklecie
 {
 public:
@@ -1087,26 +1014,6 @@ public:
 	void cast()
 	{
 		castt();
-	}
-	void printopis() // DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-	{
-		for (short i = 0; i < 5; i++)
-		{
-			SetConsoleCursorPosition(handle, { (short)(rs * 2 + 2), (short)(11 + i) });
-			std::cout << setw(35) << " " << endl;
-		}
-		int c = 0, d = 1;
-		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 2), 11 });
-		for (int i = 0; i < opis.length(); i++)
-		{
-			std::cout << opis.at(i); c++;
-			if (c > 25 && opis.at(i) == ' ')
-			{
-				SetConsoleCursorPosition(handle, { (short)(rs * 2 + 2), (short)(11 + d) });
-				d++;
-				c = 0;
-			}
-		}
 	}
 	void display(int a, int b)
 	{
@@ -1177,8 +1084,6 @@ public:
 		opis = o;
 		castt = c;
 	}
-
-
 };
 Zaklecie pliska;
 Zaklecie z[3][5] = { {
@@ -1200,128 +1105,6 @@ Zaklecie("Wybuch swiatla        " , 3, 10, "Odrzuca wszystkich wrogow dookola bo
 Zaklecie("Odrodzenie          ", 3, 20, "Zapobiega nastepnemu smiertelnemu ciosowi przeciwnika", odrodzenie),
 Zaklecie("Boski Wyrok         ", 2, 20, "Zabija wybranego wroga", boskiwyrok),
 } };
-
-
-
-//do zastapienia
-
-//
-//void deathanim(short a, short b) // animacja przy �mierci lub escape DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-//{
-//	for (short i = 26; i >= 0; i -= 2)
-//	{
-//		SetConsoleCursorPosition(handle, { i, a });
-//		Sleep(40 - b);
-//		cout << setw(2) << "  ";
-//	}
-//	for (short i = 0; i <= 26; i += 2)
-//	{
-//		SetConsoleCursorPosition(handle, { i, (short)(a + 1) });
-//		Sleep(37 - b);
-//		cout << setw(2) << "  ";
-//	}
-//
-//}
-//void ramkaeq() //funkcja wypisuj�ca ramk� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-//{
-//	SetConsoleTextAttribute(handle, 12);
-//	std::cout << (char)0xC9 << setw(6) << setfill((char)0xCD) << (char)0xCB;
-//	SetConsoleTextAttribute(handle, 7);
-//	std::cout << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xCB << setw(6) << (char)0xBB;
-//	for (int i = 1; i < 4; i++)
-//	{
-//		SetConsoleTextAttribute(handle, 12);
-//		SetConsoleCursorPosition(handle, { 0, (short)(4 * i) });
-//		std::cout << (char)0xCC << setw(6) << (char)0xCE;
-//		SetConsoleTextAttribute(handle, 7);
-//		std::cout << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xCE << setw(6) << (char)0xB9;
-//	}
-//	SetConsoleCursorPosition(handle, { 0, 16 });
-//	SetConsoleTextAttribute(handle, 12);
-//	std::cout << (char)0xC8 << setw(6) << (char)0xCA;
-//	SetConsoleTextAttribute(handle, 7);
-//	std::cout << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xCA << setw(6) << (char)0xBC;
-//	for (int i = 0; i < 4; i++)
-//	{
-//		for (int j = 0; j < 6; j++)
-//		{
-//			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 12);
-//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 1) });
-//			std::cout << (char)0xBA;
-//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 2) });
-//			std::cout << (char)0xBA;
-//			SetConsoleCursorPosition(handle, { (short)(j * 6), (short)(i * 4 + 3) });
-//			std::cout << (char)0xBA;
-//			if (j == 0 || j == 1) SetConsoleTextAttribute(handle, 7);
-//		}
-//	}
-//	cout << setfill(' ');
-//}
-//void printstats() //DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-//{
-//	for (short i = 0; i < 7; i++)
-//	{
-//		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), i });
-//		std::cout << setw(23) << " " << endl;
-//	}
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 0 });
-//	SetConsoleTextAttribute(handle, 15);
-//	std::cout << "exp: " << p.cexp << " / " << p.lvlupexp << "  LVL: " << p.lvl;
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 1 });
-//	double ratio = (p.chp * 1.0) / (p.hp * 1.0);
-//	for (double i = 0.0; i < 10.0; i++)
-//	{
-//		if ((i / 10) < ratio)
-//		{
-//			SetConsoleTextAttribute(handle, 192);
-//			std::cout << "  ";
-//		}
-//		else
-//		{
-//			SetConsoleTextAttribute(handle, 128);
-//			std::cout << "  ";
-//		}
-//	}
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 2 });
-//	SetConsoleTextAttribute(handle, 15);
-//	std::cout << p.chp << " / " << p.hp;
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 3 });
-//	SetConsoleTextAttribute(handle, 14);
-//	std::cout << "Armor: " << p.armor;
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 4 });
-//	SetConsoleTextAttribute(handle, 11);
-//	std::cout << "Magic Res.: " << p.mr;
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 5 });
-//	SetConsoleTextAttribute(handle, 4);
-//	std::cout << "Damage: " << p.dmg;
-//	SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 6 });
-//	SetConsoleTextAttribute(handle, 8);
-//	std::cout << "Speed: " << p.movesleft << " / " << p.spd << "   ";
-//	if (hero != 0)
-//	{
-//		SetConsoleCursorPosition(handle, { (short)(rs * 2 + 15), 7 });
-//		SetConsoleTextAttribute(handle, 9);
-//		std::cout << "Mana: " << p.cmana << " / " << p.mana << "   ";
-//	}
-//
-//}
-
-//void spellborderprint() //wypisywanie ramki menu zakl�� DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA DO USUNIECIA 
-//{
-//	SetConsoleCursorPosition(handle, { 0, 8 });
-//	SetConsoleTextAttribute(handle, 11);
-//	std::cout << (char)0xC9 << setw(27) << setfill((char)0xCD) << (char)0xBB;
-//	for (short i = 9; i < 14; i++)
-//	{
-//		SetConsoleCursorPosition(handle, { 0, i });
-//		std::cout << (char)0xBA << setw(27) << setfill(' ') << (char)0xBA;
-//	}
-//	SetConsoleCursorPosition(handle, { 0, 14 });
-//	std::cout << (char)0xC8 << setw(27) << setfill((char)0xCD) << (char)0xBC;
-//	cout << setfill(' ');
-//}
-//do zastapienia
-
 
 void secretrooms()
 {
@@ -1418,8 +1201,6 @@ void mapcontrol(int a, int b) //poruszanie sie postaci, zadawanie obra�e�, p
 		}
 	}
 }
-
-
 
 class AI
 {
@@ -1768,12 +1549,6 @@ AI ai;
 
 int main()
 {
-	
-	/*auto image = sf::Image{};
-	image.loadFromFile("test.png");
-
-	window.setIcon(image.getSize().x, image.getSize().y, image.getPixelsPtr());*/
-
 	char inp = 'X';
 	char eqinp = 'X';
 	string champion_select;
@@ -1791,7 +1566,6 @@ int main()
 		{
 		case 0: //wyb�r postaci
 		{
-			SetConsoleCursorPosition(handle, { 1, 7 });
 			switch (inp)
 			{
 			case 'l': //left
@@ -1815,7 +1589,6 @@ int main()
 				if (help == 0) champion_select.append(">");
 				else champion_select.append(" ");
 				champion_select.append("Fighter  ");
-				
 				
 				if (help == 1) champion_select.append(">");
 				else champion_select.append(" ");
@@ -1896,8 +1669,7 @@ int main()
 						inp = 'X';
 						magic = 1;
 						magicfirst = 0;
-						//spellborderprint();
-						while (magic == 1) 
+						while (magic == 1)
 						{
 							switch (inp)
 							{
@@ -1958,7 +1730,7 @@ int main()
 											}
 											}
 											pliska.display(hero, magicmenu);
-											
+
 											if (magic != 0)
 											{
 												inp = event_manager.get_input();
@@ -1998,10 +1770,10 @@ int main()
 											switch (inp)
 											{
 											case 'l': {if (magicchoice == 0) { magicchoice = how_many_enemies - 1; }
-												   else { magicchoice--; }
+													else { magicchoice--; }
 											}break;
 											case 'r': {if (magicchoice >= how_many_enemies - 1) { magicchoice = 0; }
-												   else { magicchoice++; }
+													else { magicchoice++; }
 											}break;
 											case 'c':
 											{
@@ -2044,11 +1816,6 @@ int main()
 									}
 									change = 0;
 								}
-								/*else
-								{
-									SetConsoleCursorPosition(handle, { 32, 11 });
-									std::cout << "Brak many                         ";
-								}*/
 							}break;
 							case 'm':
 							{
@@ -2062,16 +1829,12 @@ int main()
 							{
 								engine.display_action = true;
 								string spell_list = "";
-								//z[hero - 1][magicmenu].printopis();
-								//SetConsoleCursorPosition(handle, { 4, 9 });
 								if (magicmenu == magicfirst) { spell_list.append(">"); }
 								else { spell_list.append(" "); }
 								spell_list.append(z[hero - 1][magicfirst].spellname);
-								//SetConsoleCursorPosition(handle, { 4, 11 });
 								if (magicmenu == magicfirst + 1) { spell_list.append("\n>"); }
 								else { spell_list.append("\n "); }
 								spell_list.append(z[hero - 1][magicfirst + 1].spellname);
-								//SetConsoleCursorPosition(handle, { 4, 13 });
 								if (magicmenu == magicfirst + 2) { spell_list.append("\n>"); }
 								else { spell_list.append("\n "); }
 								spell_list.append(z[hero - 1][magicfirst + 2].spellname); //wypisywanie list zaklec
@@ -2085,11 +1848,6 @@ int main()
 							}
 						}
 					}
-					/*else
-					{
-						SetConsoleCursorPosition(handle, { 32, 11 });
-						std::cout << "Brak dostepnych zaklec";
-					}*/
 				}break;
 				} //koniec zakl��
 				if (hrx != chrx || hry != chry) //zmiana pokoju
@@ -2097,26 +1855,7 @@ int main()
 					chrx = hrx;
 					chry = hry;
 					nextroom.reset();
-					if (stealth == true) stealth = false; //reset ukrycia �otra (ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA )
-					//SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), 0 });
-					//SetConsoleTextAttribute(handle, 7);
-					//for (int i = 0; i < 10; i++) //wypisywanie minimapy
-					//{
-					//	for (int j = 0; j < 10; j++)
-					//	{
-					//		if (i == hrx && j == hry)
-					//		{
-					//			SetConsoleTextAttribute(handle, 12);
-					//			std::cout << minimap.map[i][j];
-					//			SetConsoleTextAttribute(handle, 7);
-					//		}
-					//		else
-					//		{
-					//			std::cout << minimap.map[i][j];
-					//		}
-					//	}
-					//	SetConsoleCursorPosition(handle, { (short)((rs + 2) * 2), (short)(i + 1) });
-					//}
+					if (stealth == true) stealth = false; //reset ukrycia �otra (ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA ZAKL�CIA )				}
 				}
 			}
 			else
@@ -2147,11 +1886,7 @@ int main()
 				hrx = hcx / rs; //hero room x = hero coordinate x / room size
 				hry = hcy / rs;
 				board.units[hcx][hcy] = 2;
-				/*printstats();*/
 				engine.floorprint();					//printownie pod�ogi(co ruch)
-				/*SetConsoleCursorPosition(handle, { 0, 16 });
-				SetConsoleTextAttribute(handle, 7);
-				SetConsoleCursorPosition(handle, { 0, 0 });*/
 				if (p.movesleft > 0)
 				{
 					inp = event_manager.get_input();
@@ -2164,13 +1899,6 @@ int main()
 		}break;
 		case 2: //ekwipunek
 		{
-			/*SetConsoleCursorPosition(handle, { 0, 0 });
-			SetConsoleTextAttribute(handle, 7);*/
-			//if (change == 1) //ramka do ekwipunku
-			//{
-			//	//ramkaeq(); //moze do zmiany ????
-			//	
-			//}
 			change = 0;
 			switch (inp)
 			{
@@ -2211,7 +1939,7 @@ int main()
 							{
 							case 'u': {if (help > 0) help--; }break;
 							case 'd': {if (help < 3) help++; }break;
-							case 13:
+							case 'c':
 							{
 								switch (help)
 								{
@@ -2244,16 +1972,6 @@ int main()
 									inp = 'X';
 								} break;
 								}
-								/*SetConsoleCursorPosition(handle, { 33, 0 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 1 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 2 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 3 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 4 });
-								std::cout << "							";*/
 							}break;
 							}
 						}
@@ -2285,16 +2003,6 @@ int main()
 									inp = 'X';
 								} break;
 								}
-								/*SetConsoleCursorPosition(handle, { 33, 0 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 1 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 2 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 3 });
-								std::cout << "                      ";
-								SetConsoleCursorPosition(handle, { 33, 4 });
-								std::cout << "							";*/
 							}break;
 							}
 						}
@@ -2302,24 +2010,19 @@ int main()
 						{
 							engine.display_action = true;
 							string select_text = "";
-
 							short int a = 0;
 							if (item[eq.content[eq.x][eq.y]].consumable == 1) 
 							{
-								//SetConsoleCursorPosition(handle, { 33, a });
 								if (help == a) { select_text.append(">"); }
 								else { select_text.append(" "); }
 								select_text.append("Uzyj\n"); a++;
 							}
-							//SetConsoleCursorPosition(handle, { 33, a });
 							if (help == a) { select_text.append(">"); }
 							else { select_text.append(" "); }
 							select_text.append("Przenies\n"); a++;
-							//SetConsoleCursorPosition(handle, { 33, a });
 							if (help == a) { select_text.append(">"); }
 							else { select_text.append(" "); }
 							select_text.append("Wyrzuc\n"); a++;
-							//SetConsoleCursorPosition(handle, { 33, a });
 							if (help == a) { select_text.append(">"); }
 							else { select_text.append(" "); }
 							select_text.append("Anuluj"); a++;
@@ -2347,8 +2050,6 @@ int main()
 						}
 						else //pr�ba za�o�enie przedmiotu na z�e miejsce
 						{
-							/*SetConsoleCursorPosition(handle, { 33, 4 });*/
-							//std::cout << "You cant wear that there!";
 							eq.x = eq.choicex; eq.y = eq.choicey;
 						}
 					}
@@ -2370,23 +2071,7 @@ int main()
 			if (change == 0) //wypisywanie ekwipunku
 			{
 				engine.floorprint();
-				//for (int i = 0; i < 5; i++)
-				//{
-				//	for (int j = 0; j < 4; j++)
-				//	{
-				//		if (i == eq.x && j == eq.y) SetConsoleTextAttribute(handle, 12); //kursor ekwipunku
-				//		else if (i == 0 && j == item[eq.content[eq.x][eq.y]].eqslot - 1 && help != 3)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w kt�rym mo�na za�ozyc przedmiot pod kursorem
-				//		else if (i == 0 && j == item[eq.content[eq.choicex][eq.choicey]].eqslot - 1)  SetConsoleTextAttribute(handle, 9); //podswietlanie miejsca w ktorym mozna zalozyc przenoszony przedmiot 
-				//		else if (i == eq.choicex && j == eq.choicey) SetConsoleTextAttribute(handle, 13); //podswietlanie wybranego przedmiotu
-				//		else SetConsoleTextAttribute(handle, 7); //normalny kolor
-				//		SetConsoleCursorPosition(handle, { (short)(i * 6 + 1), (short)(j * 4 + 2) });
-				//		std::cout << item[eq.content[i][j]].sprite_no;
-				//		if ((i == eq.x && j == eq.y) || (i == eq.choicex && j == eq.choicey)) SetConsoleTextAttribute(handle, 7);
-				//	}
-				//}
 			}
-			/*item[eq.content[eq.x][eq.y]].printopis();*/
-			//engine.print_description(, window);
 			if (change == 0)
 			{
 				inp = event_manager.get_input();
@@ -2394,25 +2079,10 @@ int main()
 
 		}break;
 		}
-	} while (/*inp != 27&& */ p.chp > 0);
-	//SetConsoleCursorPosition(handle, { 14, 28 }); //animacja �mierci i zako�czenie gry
-	//SetConsoleTextAttribute(handle, 240);
-	//deathanim(0, 0);
-	//deathanim(2, 6);
-	//deathanim(4, 12);
-	//deathanim(6, 18);
-	//deathanim(8, 24);
-	//deathanim(10, 27);
-	//deathanim(12, 30);
-	/*SetConsoleCursorPosition(handle, { 9, 6 });
-	SetConsoleTextAttribute(handle, 252);
-	std::cout << "GAME OVER";
-	SetConsoleTextAttribute(handle, 0);
-	SetConsoleCursorPosition(handle, { 0, 20 });*/
-	//std::system("pause");
+	}while (/*inp != 27&& */ p.chp > 0);
+	while(event_manager.get_input() !='c')
+	engine.draw_gameover(window);
 
 }
-
-
 
 //dodatkowe pi�tra, z�oto
