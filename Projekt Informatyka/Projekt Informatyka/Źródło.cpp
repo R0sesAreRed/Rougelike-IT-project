@@ -405,8 +405,8 @@ tempbuff nextroom = { 0, 0, 0, 0, 0, 0, 0 };
 
 Item none{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, };
 Item hpdrop{ 15, 0, 0, 0, 0, 0, 1, 10, 0, 1, };
-Item chainmail{ 0, 0, 5, 0, 0, 0, 0, 7, 2, 1, "Kolczuga. Zalozenie jej zwieksza pancerz o 5" };
-Item hpamulet{ 10, 0, 0, 0, 0, 0, 0, 8, 4, 1, "Amulet zdrowia. Załozenie go zwieksza zdrowie o 10" };
+Item chainmail{ 0, 0, 5, 0, 0, 0, 0, 11, 2, 1, "Kolczuga. Zalozenie jej zwieksza pancerz o 5" };
+Item hpamulet{ 10, 0, 0, 0, 0, 0, 0, 12, 4, 1, "Amulet zdrowia. Załozenie go zwieksza zdrowie o 10" };
 Item item[4] = { none, hpdrop, hpamulet, chainmail };
 void dropitem(int a, int b, int d)
 {
@@ -450,8 +450,8 @@ TextureType texturetype[] = {
 	TextureType("item3"),	//8
 	TextureType("item"),	//9
 	TextureType("item1s"),	//10
-	TextureType("item6"),	//11
-	TextureType("item7"),	//12
+	TextureType("item2s"),	//11
+	TextureType("item3s"),	//12
 	TextureType("item8"),	//13
 	TextureType("item9"),	//14
 	TextureType("item10"),	//15
@@ -734,7 +734,6 @@ public:
 		damage.text.setString("Damage: " + to_string(p.dmg));
 		speed.text.setString("Speed: " + to_string(p.movesleft) + "/" + to_string(p.spd));
 		mana.text.setString("Mana: " + to_string(p.cmana) + "/" + to_string(p.mana));
-		/*eq_select.text.setString("Użyj \nwyrzuć \nprzenies");*/
 	}
 	void draw_ui(sf::RenderWindow& _window) {
 		_window.draw(health.text);
@@ -783,6 +782,7 @@ public:
 		window.display();
 	}
 	void set_gameover() {
+		game_over.text.setString("Game Over");
 		game_over.text.setCharacterSize(60);
 		game_over.text.setFillColor(sf::Color::Red);
 		end_exp.text.setCharacterSize(30);
@@ -791,7 +791,7 @@ public:
 	}
 	void draw_gameover(sf::RenderWindow& _window) {
 		window.clear();
-		game_over.text.setString("Game Over");
+		set_gameover();
 		_window.draw(game_over.text);
 		_window.draw(end_exp.text);
 		_window.display();
@@ -2079,7 +2079,7 @@ int main()
 
 		}break;
 		}
-	}while (/*inp != 27&& */ p.chp > 0);
+	}while (window.isOpen() && p.chp > 0);
 	while(event_manager.get_input() !='c')
 	engine.draw_gameover(window);
 
