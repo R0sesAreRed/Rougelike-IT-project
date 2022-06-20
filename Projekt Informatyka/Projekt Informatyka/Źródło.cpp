@@ -595,8 +595,10 @@ public:
 	bool in_equipment = false;
 	bool display_action = false;
 	Tile eq_image;
-
+	sf::Image icon = sf::Image{};
 	Engine() {
+		icon.loadFromFile("player.png");
+		window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 		for (int i = 0; i < size_x; i++) {
 			for (int j = 0; j < size_y; j++) {
 				gameboard[i][j].set_sprite(1);
