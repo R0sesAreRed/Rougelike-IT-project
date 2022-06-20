@@ -434,7 +434,7 @@ public:
 	int type = 1;
 	sf::Texture texture;
 	TextureType(string _texture) {
-		texture.loadFromFile(_texture + ".png");
+		texture.loadFromFile("assets/" + _texture + ".png");
 	}
 };
 
@@ -512,7 +512,7 @@ public:
 		set_font();
 	}
 	void set_font() {
-		font.loadFromFile("font.ttf");
+		font.loadFromFile("assets/font.ttf");
 		text.setFont(font);
 		text.setCharacterSize(16);
 		text.setFillColor(sf::Color::White);
@@ -595,10 +595,10 @@ public:
 	bool in_equipment = false;
 	bool display_action = false;
 	Tile eq_image;
-	sf::Image icon = sf::Image{};
+	//sf::Image icon;
 	Engine() {
-		icon.loadFromFile("player.png");
-		window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+		//icon.loadFromFile("assets/player.png");
+		//window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 		for (int i = 0; i < size_x; i++) {
 			for (int j = 0; j < size_y; j++) {
 				gameboard[i][j].set_sprite(1);
